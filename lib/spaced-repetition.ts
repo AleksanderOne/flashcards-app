@@ -33,7 +33,10 @@ export interface SM2Output {
 }
 
 export function calculateSM2(input: SM2Input): SM2Output {
-    const { quality, repetitions, easiness, interval } = input;
+    let { quality, repetitions, easiness, interval } = input;
+
+    // Walidacja: ograniczenie quality do zakresu 0-5
+    quality = Math.max(0, Math.min(5, Math.round(quality)));
 
     // 1. Aktualizacja współczynnika łatwości (EF)
     // EF' = EF + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))
