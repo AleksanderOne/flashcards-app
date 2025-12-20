@@ -235,29 +235,21 @@ export async function getUserWords(userId: string, filters?: {
 
 // ========== AKCJE DLA ADMINÓW ==========
 
+/**
+ * Weryfikacja uprawnień administratora.
+ * Rola jest przechowywana w JWT tokenie sesji (patrz: lib/auth.ts callbacks.jwt),
+ * więc nie potrzebujemy dodatkowego zapytania do bazy danych.
+ */
 async function checkIsAdmin() {
     const session = await auth();
-    if (!session || !session.user || !session.user.id) {
+    if (!session?.user?.id) {
         return { isAdmin: false, userId: null };
     }
-    // Weryfikacja roli administratora na podstawie sesji użytkownika.
-    // Domyślnie ufamy danym sesyjnym dla wydajności.
-    if (session.user.role === 'admin') {
-        return { isAdmin: true, userId: session.user.id };
-    }
 
-    // Zapasowa weryfikacja uprawnień bezpośrednio w bazie danych w przypadku braku informacji w sesji
-    const user = await db
-        .select({ role: users.role })
-        .from(users)
-        .where(eq(users.id, session.user.id))
-        .limit(1);
-
-    if (user.length === 0 || user[0].role !== 'admin') {
-        return { isAdmin: false, userId: session.user.id };
-    }
-
-    return { isAdmin: true, userId: session.user.id };
+    return {
+        isAdmin: session.user.role === 'admin',
+        userId: session.user.id
+    };
 }
 
 /**
