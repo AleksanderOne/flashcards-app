@@ -24,10 +24,14 @@ export function EditNameForm({ currentName }: EditNameFormProps) {
 
         try {
             const result = await updateUserName(name);
-            toast.success(result.message);
-            router.refresh();
+            if (result.success) {
+                toast.success(result.message);
+                router.refresh();
+            } else {
+                toast.error(result.error);
+            }
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Nie udało się zaktualizować nazwy');
+            toast.error('Wystąpił nieoczekiwany błąd');
         } finally {
             setIsLoading(false);
         }

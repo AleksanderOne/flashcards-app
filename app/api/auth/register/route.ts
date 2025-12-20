@@ -4,25 +4,23 @@ import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
+import { registerSchema } from '@/lib/schemas';
 
 export async function POST(req: Request) {
     try {
-        const { name, email, password } = await req.json();
+        const body = await req.json();
 
-        // Walidacja danych wejściowych
-        if (!name || !email || !password) {
+        // Walidacja danych wejściowych za pomocą Zod (safeParse)
+        const validationResult = registerSchema.safeParse(body);
+
+        if (!validationResult.success) {
             return NextResponse.json(
-                { error: 'Wszystkie pola są wymagane' },
+                { error: validationResult.error.issues[0].message },
                 { status: 400 }
             );
         }
 
-        if (password.length < 8) {
-            return NextResponse.json(
-                { error: 'Hasło musi mieć minimum 8 znaków' },
-                { status: 400 }
-            );
-        }
+        const { name, email, password } = validationResult.data;
 
         // Weryfikacja czy użytkownik już istnieje
         const existingUser = await db.query.users.findFirst({

@@ -13,11 +13,13 @@ import { Volume2, VolumeXIcon, CheckCircle, XCircle, ArrowRight, Loader2, Image 
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
+import { LevelType } from '@/lib/constants';
+
 interface Word {
     id: string; // opcjonalne, głównie jako klucz
     english: string;
     polish: string;
-    level: string;
+    level: LevelType;
     category: string;
     imageUrl?: string | null;
 }

@@ -43,16 +43,19 @@ export function ChangePasswordForm({ hasPassword }: ChangePasswordFormProps) {
                 currentPassword,
                 newPassword
             });
-            toast.success(result.message);
 
-            // Wyczyść formularz
-            setCurrentPassword('');
-            setNewPassword('');
-            setConfirmPassword('');
-
-            router.refresh();
+            if (result.success) {
+                toast.success(result.message);
+                // Wyczyść formularz
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+                router.refresh();
+            } else {
+                toast.error(result.error);
+            }
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Nie udało się zmienić hasła');
+            toast.error('Wystąpił nieoczekiwany błąd');
         } finally {
             setIsLoading(false);
         }

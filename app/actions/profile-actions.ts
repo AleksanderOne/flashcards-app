@@ -7,15 +7,20 @@ import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { hash } from 'bcryptjs';
 
+// Typ dla ujednoliconego zwracania wyników akcji
+export type ActionResult<T = void> =
+    | { success: true; data?: T; message?: string }
+    | { success: false; error: string };
+
 /**
  * Aktualizuje nazwę użytkownika
  */
-export async function updateUserName(name: string) {
+export async function updateUserName(name: string): Promise<ActionResult> {
     const session = await auth();
-    if (!session?.user?.id) throw new Error('Unauthorized');
+    if (!session?.user?.id) return { success: false, error: 'Nie jesteś zalogowany' };
 
     if (!name || name.trim().length === 0) {
-        throw new Error('Nazwa nie może być pusta');
+        return { success: false, error: 'Nazwa nie może być pusta' };
     }
 
     try {
@@ -28,19 +33,19 @@ export async function updateUserName(name: string) {
         return { success: true, message: 'Nazwa została zaktualizowana' };
     } catch (error) {
         console.error('Błąd podczas aktualizacji nazwy:', error);
-        throw new Error('Nie udało się zaktualizować nazwy');
+        return { success: false, error: 'Nie udało się zaktualizować nazwy' };
     }
 }
 
 /**
  * Aktualizuje email użytkownika
  */
-export async function updateUserEmail(email: string) {
+export async function updateUserEmail(email: string): Promise<ActionResult> {
     const session = await auth();
-    if (!session?.user?.id) throw new Error('Unauthorized');
+    if (!session?.user?.id) return { success: false, error: 'Nie jesteś zalogowany' };
 
     if (!email || !email.includes('@')) {
-        throw new Error('Nieprawidłowy adres email');
+        return { success: false, error: 'Nieprawidłowy adres email' };
     }
 
     // Sprawdzenie czy podany email jest już zajęty
@@ -49,7 +54,7 @@ export async function updateUserEmail(email: string) {
     });
 
     if (existingUser && existingUser.id !== session.user.id) {
-        throw new Error('Ten adres email jest już używany');
+        return { success: false, error: 'Ten adres email jest już używany' };
     }
 
     try {
@@ -62,21 +67,21 @@ export async function updateUserEmail(email: string) {
         return { success: true, message: 'Email został zaktualizowany' };
     } catch (error) {
         console.error('Błąd podczas aktualizacji emaila:', error);
-        throw new Error('Nie udało się zaktualizować emaila');
+        return { success: false, error: 'Nie udało się zaktualizować emaila' };
     }
 }
 
 /**
  * Zmienia hasło użytkownika
  */
-export async function updateUserPassword(data: { currentPassword: string; newPassword: string }) {
+export async function updateUserPassword(data: { currentPassword: string; newPassword: string }): Promise<ActionResult> {
     const session = await auth();
-    if (!session?.user?.id) throw new Error('Unauthorized');
+    if (!session?.user?.id) return { success: false, error: 'Nie jesteś zalogowany' };
 
     const { currentPassword, newPassword } = data;
 
     if (!newPassword || newPassword.length < 8) {
-        throw new Error('Nowe hasło musi mieć minimum 8 znaków');
+        return { success: false, error: 'Nowe hasło musi mieć minimum 8 znaków' };
     }
 
     // Pobranie danych użytkownika wraz z hasłem
@@ -86,7 +91,7 @@ export async function updateUserPassword(data: { currentPassword: string; newPas
     });
 
     if (!user) {
-        throw new Error('Użytkownik nie znaleziony');
+        return { success: false, error: 'Użytkownik nie znaleziony' };
     }
 
     // Weryfikacja starego hasła (jeśli użytkownik nie korzysta wyłącznie z logowania społecznościowego)
@@ -95,7 +100,7 @@ export async function updateUserPassword(data: { currentPassword: string; newPas
         const isValid = await bcrypt.compare(currentPassword, user.password);
 
         if (!isValid) {
-            throw new Error('Aktualne hasło jest nieprawidłowe');
+            return { success: false, error: 'Aktualne hasło jest nieprawidłowe' };
         }
     }
 
@@ -111,6 +116,6 @@ export async function updateUserPassword(data: { currentPassword: string; newPas
         return { success: true, message: 'Hasło zostało zmienione' };
     } catch (error) {
         console.error('Błąd podczas aktualizacji hasła:', error);
-        throw new Error('Nie udało się zmienić hasła');
+        return { success: false, error: 'Nie udało się zmienić hasła' };
     }
 }

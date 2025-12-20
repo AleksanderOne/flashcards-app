@@ -7,20 +7,26 @@ import { calculateSM2, getQualityFromBoolean } from '@/lib/spaced-repetition';
 import { eq, and, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
+import { LevelType } from '@/lib/constants';
+
 export interface SubmitAnswerParams {
     wordEnglish: string;
     wordPolish: string;
     isCorrect: boolean;
     mode: 'pl_to_en_text' | 'en_to_pl_text' | 'pl_to_en_quiz' | 'en_to_pl_quiz';
-    level: string;
+    level: LevelType;
     category: string;
     timeSpentMs: number;
 }
 
-export async function submitAnswer(params: SubmitAnswerParams) {
+export type LearningResult =
+    | { success: true, nextReviewDate: Date, newAchievements?: string[] }
+    | { success: false, error: string };
+
+export async function submitAnswer(params: SubmitAnswerParams): Promise<LearningResult> {
     const session = await auth();
     if (!session || !session.user || !session.user.id) {
-        throw new Error('Unauthorized');
+        return { success: false, error: 'Unauthorized' };
     }
 
     const userId = session.user.id;
@@ -93,7 +99,7 @@ export async function submitAnswer(params: SubmitAnswerParams) {
             wordPolish,
             isCorrect,
             learningMode: mode,
-            level: level as any,
+            level: level, // Bez rzutowania, level jest już LevelType
             category,
             timeSpentMs,
         });

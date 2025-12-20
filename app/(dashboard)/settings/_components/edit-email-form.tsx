@@ -26,10 +26,14 @@ export function EditEmailForm({ currentEmail }: EditEmailFormProps) {
 
         try {
             const result = await updateUserEmail(email);
-            toast.success(result.message);
-            router.refresh();
+            if (result.success) {
+                toast.success(result.message);
+                router.refresh();
+            } else {
+                toast.error(result.error);
+            }
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Nie udało się zaktualizować emaila');
+            toast.error('Wystąpił nieoczekiwany błąd');
         } finally {
             setIsLoading(false);
         }
