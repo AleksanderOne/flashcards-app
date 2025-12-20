@@ -18,7 +18,7 @@ const protectedPaths = [
 // Publiczne ścieżki - dostępne bez logowania
 const publicPaths = ['/login', '/register'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Sprawdź czy użytkownik jest zalogowany
