@@ -217,16 +217,16 @@ export function WordsManagementCard() {
                         <div className="space-y-2">
                             <Label htmlFor="level-filter">Poziom</Label>
                             <Select
-                                value={filters.level}
+                                value={filters.level || "_all"}
                                 onValueChange={(value) =>
-                                    setFilters({ ...filters, level: value })
+                                    setFilters({ ...filters, level: value === "_all" ? "" : value })
                                 }
                             >
                                 <SelectTrigger id="level-filter">
                                     <SelectValue placeholder="Wszystkie" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">Wszystkie</SelectItem>
+                                    <SelectItem value="_all">Wszystkie</SelectItem>
                                     {LEVELS.map((level) => (
                                         <SelectItem key={level} value={level}>
                                             {level}

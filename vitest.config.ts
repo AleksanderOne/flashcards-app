@@ -12,5 +12,6 @@ export default defineConfig({
     test: {
         environment: 'node', // Changed from jsdom to node to avoid ESM issues for logic tests
         globals: true,
+        exclude: ['e2e/**', 'node_modules/**'], // Wykluczamy testy Playwright (e2e folder)
     },
 })

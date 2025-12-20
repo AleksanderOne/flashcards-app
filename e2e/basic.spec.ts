@@ -2,12 +2,12 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Aplikacja Flashcards (E2E Basic)', () => {
 
-    test('Strona główna powinna być dostępna publicznie', async ({ page }) => {
+    test('Strona główna powinna być dostępna publicznie (landing page)', async ({ page }) => {
         await page.goto('/');
-        // Sprawdzamy czy nie ma przekierowania do login
-        expect(page.url()).not.toContain('/login');
-        // Sprawdzamy tytuł (nawet częściowy)
-        // await expect(page).toHaveTitle(/Flashcards/i); 
+        // Strona główna jest publiczna - wyświetla landing page
+        await expect(page).toHaveURL(/\/$/);
+        // Sprawdzamy że to landing page - zawiera nagłówek
+        await expect(page.locator('text=Ucz się angielskiego')).toBeVisible({ timeout: 10000 });
     });
 
     test('Próba wejścia na chronioną trasę (/learn) powinna przekierować do logowania', async ({ page }) => {
@@ -17,8 +17,10 @@ test.describe('Aplikacja Flashcards (E2E Basic)', () => {
 
     test('Strona logowania powinna zawierać formularz', async ({ page }) => {
         await page.goto('/login');
+        // Czekamy na załadowanie formularza (client-side rendering)
+        await page.waitForLoadState('networkidle');
         // Sprawdź obecność pól hasła i email
-        await expect(page.locator('input[type="email"]')).toBeVisible();
+        await expect(page.locator('input[type="email"]')).toBeVisible({ timeout: 10000 });
         await expect(page.locator('input[type="password"]')).toBeVisible();
         // Sprawdź przycisk
         await expect(page.locator('button[type="submit"]')).toBeVisible();
