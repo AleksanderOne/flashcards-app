@@ -6,25 +6,33 @@ import { users, learningSessions, wordProgress, achievements, userStats } from '
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
+/**
+ * Pobiera kontekst autoryzacji z sesji.
+ * Rola jest przechowywana w JWT tokenie (patrz: lib/auth.ts callbacks.jwt),
+ * więc nie potrzebujemy zapytania do bazy danych.
+ */
+async function getAuthContext() {
+    const session = await auth();
+    if (!session?.user?.id) {
+        throw new Error('Unauthorized');
+    }
+    return {
+        userId: session.user.id,
+        isAdmin: session.user.role === 'admin',
+    };
+}
+
 // Funkcja pomocnicza weryfikująca uprawnienia administratora
 async function checkAdmin() {
-    const session = await auth();
-    if (!session?.user?.email) throw new Error('Unauthorized');
-
-    const user = await db.query.users.findFirst({
-        where: eq(users.email, session.user.email),
-        columns: { role: true }
-    });
-
-    if (user?.role !== 'admin') throw new Error('Forbidden');
+    const ctx = await getAuthContext();
+    if (!ctx.isAdmin) throw new Error('Forbidden');
     return true;
 }
 
 // Funkcja pomocnicza pobierająca ID aktualnie zalogowanego użytkownika
 async function getCurrentUserId() {
-    const session = await auth();
-    if (!session?.user?.id) throw new Error('Unauthorized');
-    return session.user.id;
+    const ctx = await getAuthContext();
+    return ctx.userId;
 }
 
 /**
