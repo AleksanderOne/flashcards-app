@@ -2,6 +2,7 @@ import { db } from '@/lib/db/drizzle';
 import { words, users } from '@/lib/db/schema';
 import { ilike, or, and, eq, desc } from 'drizzle-orm';
 import { NextRequest, NextResponse } from 'next/server';
+import { LevelType, LEVELS } from '@/lib/constants';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -41,8 +42,8 @@ export async function GET(request: NextRequest) {
             filters.push(eq(words.category, category));
         }
 
-        if (level && level !== 'all') {
-            filters.push(eq(words.level, level as any));
+        if (level && level !== 'all' && LEVELS.includes(level as LevelType)) {
+            filters.push(eq(words.level, level as LevelType));
         }
 
         // Uwzględnienie tylko zatwierdzonych słówek

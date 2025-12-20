@@ -28,10 +28,16 @@ import { LEVELS, CATEGORIES, LevelType } from '@/lib/constants';
 export function AddWordDialog() {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        english: string;
+        polish: string;
+        level: LevelType | '';
+        category: string;
+        imageUrl: string;
+    }>({
         english: '',
         polish: '',
-        level: '' as any,
+        level: '',
         category: '',
         imageUrl: '',
     });
@@ -60,7 +66,7 @@ export function AddWordDialog() {
                 setFormData({
                     english: '',
                     polish: '',
-                    level: '' as any,
+                    level: '',
                     category: '',
                     imageUrl: '',
                 });
@@ -129,7 +135,7 @@ export function AddWordDialog() {
                             <Select
                                 value={formData.level}
                                 onValueChange={(value) =>
-                                    setFormData({ ...formData, level: value as any })
+                                    setFormData({ ...formData, level: value as LevelType })
                                 }
                                 disabled={loading}
                                 required

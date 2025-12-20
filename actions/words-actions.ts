@@ -6,7 +6,7 @@ import { words, customWords, users } from '@/lib/db/schema';
 import { auth } from '@/lib/auth';
 import { eq, and, or, like, sql, inArray, ilike, desc } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import { LevelType } from '@/lib/constants';
+import { LevelType, LEVELS } from '@/lib/constants';
 
 /**
  * Escapuje znaki specjalne w LIKE pattern (%, _, \) dla bezpieczeństwa.
@@ -188,8 +188,8 @@ export async function getUserWords(userId: string, filters?: {
             )
         ];
 
-        if (filters?.level) {
-            conditions.push(eq(words.level, filters.level as any));
+        if (filters?.level && LEVELS.includes(filters.level as LevelType)) {
+            conditions.push(eq(words.level, filters.level as LevelType));
         }
 
         if (filters?.category) {
@@ -379,8 +379,8 @@ export async function getAllWordsForAdmin(filters?: {
             conditions.push(eq(words.isApproved, false));
         }
 
-        if (filters?.level) {
-            conditions.push(eq(words.level, filters.level as any));
+        if (filters?.level && LEVELS.includes(filters.level as LevelType)) {
+            conditions.push(eq(words.level, filters.level as LevelType));
         }
 
         if (filters?.category) {
