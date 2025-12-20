@@ -1,41 +1,20 @@
-import { auth } from '@/lib/auth';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import NextAuth from 'next-auth';
+import { authConfig } from '@/lib/auth.config';
 
-// Chronione ścieżki - wymagają zalogowania
-const protectedPaths = [
-    '/learn',
-    '/challenge',
-    '/my-words',
-    '/all-words',
-    '/statistics',
-    '/achievements',
-    '/print-words',
-    '/settings',
-    '/admin',
-];
+/**
+ * Middleware autoryzacji dla Edge Runtime.
+ * 
+ * WAŻNE: Używamy auth.config.ts zamiast auth.ts, ponieważ:
+ * - Edge Runtime na Vercelu nie obsługuje połączeń TCP do bazy danych
+ * - DrizzleAdapter wymaga bezpośredniego połączenia z bazą
+ * - Callback `authorized` w authConfig obsługuje logikę przekierowań
+ * 
+ * Logika przekierowań jest zdefiniowana w lib/auth.config.ts -> callbacks.authorized
+ */
+const { auth } = NextAuth(authConfig);
 
-// Publiczne ścieżki - dostępne bez logowania
-const publicPaths = ['/login', '/register'];
-
-export async function proxy(request: NextRequest) {
-    const { pathname } = request.nextUrl;
-
-    // Sprawdź czy użytkownik jest zalogowany
-    const session = await auth();
-
-    // Jeśli użytkownik jest zalogowany i próbuje wejść na login/register
-    if (session && publicPaths.some(path => pathname.startsWith(path))) {
-        return NextResponse.redirect(new URL('/learn', request.url));
-    }
-
-    // Jeśli użytkownik NIE jest zalogowany i próbuje wejść na chronioną stronę
-    if (!session && protectedPaths.some(path => pathname.startsWith(path))) {
-        return NextResponse.redirect(new URL('/login', request.url));
-    }
-
-    return NextResponse.next();
-}
+// Next.js 16 wymaga eksportu funkcji o nazwie "proxy"
+export const proxy = auth;
 
 export const config = {
     matcher: [
