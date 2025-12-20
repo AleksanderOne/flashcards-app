@@ -8,6 +8,17 @@ import { eq, and, or, like, sql, inArray, ilike, desc } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { LevelType } from '@/lib/constants';
 
+/**
+ * Escapuje znaki specjalne w LIKE pattern (%, _, \) dla bezpieczeństwa.
+ * Zapobiega SQL injection przez znaki specjalne w wyszukiwaniu.
+ */
+function escapeLikePattern(pattern: string): string {
+    return pattern
+        .replace(/\\/g, '\\\\')  // backslash musi być pierwszy
+        .replace(/%/g, '\\%')
+        .replace(/_/g, '\\_');
+}
+
 // Współdzielone definicje typów
 export interface WordData {
     english: string;
@@ -186,7 +197,9 @@ export async function getUserWords(userId: string, filters?: {
         }
 
         if (filters?.search) {
-            const searchPattern = `%${filters.search}%`;
+            // Sanityzacja znaków specjalnych LIKE dla bezpieczeństwa
+            const sanitizedSearch = escapeLikePattern(filters.search);
+            const searchPattern = `%${sanitizedSearch}%`;
             conditions.push(
                 or(
                     ilike(words.english, searchPattern),
@@ -383,7 +396,9 @@ export async function getAllWordsForAdmin(filters?: {
         }
 
         if (filters?.search) {
-            const searchPattern = `%${filters.search}%`;
+            // Sanityzacja znaków specjalnych LIKE dla bezpieczeństwa
+            const sanitizedSearch = escapeLikePattern(filters.search);
+            const searchPattern = `%${sanitizedSearch}%`;
             conditions.push(
                 or(
                     ilike(words.english, searchPattern),

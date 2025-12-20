@@ -5,6 +5,17 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const ITEMS_PER_PAGE = 20;
 
+/**
+ * Escapuje znaki specjalne w LIKE pattern (%, _, \) dla bezpieczeństwa.
+ * Zapobiega SQL injection przez znaki specjalne w wyszukiwaniu.
+ */
+function escapeLikePattern(pattern: string): string {
+    return pattern
+        .replace(/\\/g, '\\\\')  // backslash musi być pierwszy
+        .replace(/%/g, '\\%')
+        .replace(/_/g, '\\_');
+}
+
 export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams;
@@ -18,9 +29,11 @@ export async function GET(request: NextRequest) {
         const filters = [];
 
         if (query) {
+            // Sanityzacja znaków specjalnych LIKE dla bezpieczeństwa
+            const sanitizedQuery = escapeLikePattern(query);
             filters.push(or(
-                ilike(words.english, `%${query}%`),
-                ilike(words.polish, `%${query}%`)
+                ilike(words.english, `%${sanitizedQuery}%`),
+                ilike(words.polish, `%${sanitizedQuery}%`)
             ));
         }
 
