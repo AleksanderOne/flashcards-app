@@ -22,8 +22,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
-
-const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'];
+import { LEVELS } from '@/lib/constants';
 
 interface WordData {
     id: string;

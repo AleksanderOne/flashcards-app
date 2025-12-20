@@ -38,8 +38,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Check, X, Pencil, Trash2, Loader2, Search } from 'lucide-react';
-
-const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'];
+import { LEVELS } from '@/lib/constants';
 
 type Word = {
     id: string;
