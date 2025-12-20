@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, varchar, integer, boolean, real, date, jsonb, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, varchar, integer, boolean, real, date, jsonb, pgEnum, index } from 'drizzle-orm/pg-core';
 
 // Enums
 export const levelEnum = pgEnum('level', ['A1', 'A2', 'B1', 'B2', 'C1']);
@@ -62,7 +62,13 @@ export const words = pgTable('words', {
     createdBy: varchar('created_by', { length: 255 }).references(() => users.id, { onDelete: 'set null' }), // null = system, userId = user-created
     isApproved: boolean('is_approved').default(true).notNull(), // domyślnie true dla słówek systemowych
     createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => ({
+    // Indeksy dla często używanych kolumn w wyszukiwaniu i filtrowaniu
+    levelIdx: index('words_level_idx').on(table.level),
+    categoryIdx: index('words_category_idx').on(table.category),
+    approvedIdx: index('words_approved_idx').on(table.isApproved),
+    englishIdx: index('words_english_idx').on(table.english),
+}));
 
 // Własne słówka użytkownika (prywatna kolekcja)
 export const customWords = pgTable('custom_words', {
