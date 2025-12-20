@@ -1,0 +1,28 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+### Health Check (Main Page)
+GET {{baseUrl}}/
+
+### Register New User (Example)
+# Zmień email na unikalny przed każdym uruchomieniem lub wyczyść bazę
+POST {{baseUrl}}/api/auth/register
+Content-Type: {{contentType}}
+
+{
+    "name": "Test User",
+    "email": "testuser_unique_123@example.com",
+    "password": "Password123!"
+}
+
+### Try to get words without authentication (Should fail: 401)
+GET {{baseUrl}}/api/print-words
+
+### Get words with authentication
+# Aby to zadziałało, musisz zalogować się w przeglądarce, 
+# skopiować ciasteczko `authjs.session-token` (lub podobne w zależności od konfiguracji NextAuth)
+# i wkleić je poniżej.
+# Cookie: authjs.session-token=YOUR_SESSION_TOKEN_HERE
+
+GET {{baseUrl}}/api/print-words
+# Cookie: YOUR_COOKIE_HERE
