@@ -1,17 +1,20 @@
-import { pgTable, text, timestamp, uuid, varchar, integer, boolean, real, date, jsonb, pgEnum, index } from 'drizzle-orm/pg-core';
+import { pgTable, pgSchema, text, timestamp, uuid, varchar, integer, boolean, real, date, jsonb, pgEnum, index } from 'drizzle-orm/pg-core';
 
-// Enums
-export const levelEnum = pgEnum('level', ['A1', 'A2', 'B1', 'B2', 'C1']);
-export const learningModeEnum = pgEnum('learning_mode', [
+// Schemat flashcards dla multi-schema architecture
+export const flashcardsSchema = pgSchema('flashcards');
+
+// Enums w schemacie flashcards
+export const levelEnum = flashcardsSchema.enum('level', ['A1', 'A2', 'B1', 'B2', 'C1']);
+export const learningModeEnum = flashcardsSchema.enum('learning_mode', [
     'pl_to_en_text',
     'en_to_pl_text',
     'pl_to_en_quiz',
     'en_to_pl_quiz'
 ]);
-export const userRoleEnum = pgEnum('user_role', ['user', 'admin']);
+export const userRoleEnum = flashcardsSchema.enum('user_role', ['user', 'admin']);
 
 // Users - NextAuth tabele
-export const users = pgTable('users', {
+export const users = flashcardsSchema.table('users', {
     id: varchar('id', { length: 255 }).primaryKey(),
     name: varchar('name', { length: 255 }),
     email: varchar('email', { length: 255 }).notNull().unique(),
@@ -23,7 +26,7 @@ export const users = pgTable('users', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const accounts = pgTable('accounts', {
+export const accounts = flashcardsSchema.table('accounts', {
     id: varchar('id', { length: 255 }).primaryKey(),
     userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
     type: varchar('type', { length: 255 }).notNull(),
@@ -38,21 +41,21 @@ export const accounts = pgTable('accounts', {
     session_state: varchar('session_state', { length: 255 }),
 });
 
-export const sessions = pgTable('sessions', {
+export const sessions = flashcardsSchema.table('sessions', {
     id: varchar('id', { length: 255 }).primaryKey(),
     sessionToken: varchar('session_token', { length: 255 }).notNull().unique(),
     userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
     expires: timestamp('expires').notNull(),
 });
 
-export const verificationTokens = pgTable('verification_tokens', {
+export const verificationTokens = flashcardsSchema.table('verification_tokens', {
     identifier: varchar('identifier', { length: 255 }).notNull(),
     token: varchar('token', { length: 255 }).notNull().unique(),
     expires: timestamp('expires').notNull(),
 });
 
 // Słówka systemowe (baza aplikacji) i słówka dodane przez użytkowników po zatwierdzeniu
-export const words = pgTable('words', {
+export const words = flashcardsSchema.table('words', {
     id: uuid('id').defaultRandom().primaryKey(),
     english: text('english').notNull(),
     polish: text('polish').notNull(),
@@ -71,7 +74,7 @@ export const words = pgTable('words', {
 }));
 
 // Własne słówka użytkownika (prywatna kolekcja)
-export const customWords = pgTable('custom_words', {
+export const customWords = flashcardsSchema.table('custom_words', {
     id: uuid('id').defaultRandom().primaryKey(),
     userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
     english: text('english').notNull(),
@@ -83,7 +86,7 @@ export const customWords = pgTable('custom_words', {
 });
 
 // Statystyki nauki - każda odpowiedź
-export const learningSessions = pgTable('learning_sessions', {
+export const learningSessions = flashcardsSchema.table('learning_sessions', {
     id: uuid('id').defaultRandom().primaryKey(),
     userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
     wordEnglish: text('word_english').notNull(),
@@ -97,7 +100,7 @@ export const learningSessions = pgTable('learning_sessions', {
 });
 
 // Spaced repetition tracking
-export const wordProgress = pgTable('word_progress', {
+export const wordProgress = flashcardsSchema.table('word_progress', {
     id: uuid('id').defaultRandom().primaryKey(),
     userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
     wordEnglish: text('word_english').notNull(),
@@ -111,7 +114,7 @@ export const wordProgress = pgTable('word_progress', {
 });
 
 // Osiągnięcia
-export const achievements = pgTable('achievements', {
+export const achievements = flashcardsSchema.table('achievements', {
     id: uuid('id').defaultRandom().primaryKey(),
     userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
     type: text('type').notNull(), // "category_completed", "100_words", "7_day_streak", etc.
@@ -122,7 +125,7 @@ export const achievements = pgTable('achievements', {
 });
 
 // Daily streak tracking
-export const userStats = pgTable('user_stats', {
+export const userStats = flashcardsSchema.table('user_stats', {
     id: uuid('id').defaultRandom().primaryKey(),
     userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
     currentStreak: integer('current_streak').default(0).notNull(),
