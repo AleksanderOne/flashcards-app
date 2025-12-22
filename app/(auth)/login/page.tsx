@@ -158,41 +158,7 @@ export default function LoginPage() {
                     </svg>
                     Google
                 </Button>
-                <div className="mt-6 rounded-lg bg-muted p-4 text-sm">
-                    <p className="font-medium mb-2">Konto testowe:</p>
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-2 p-2 bg-background rounded border">
-                            <code className="text-xs">user@example.com</code>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                onClick={() => {
-                                    navigator.clipboard.writeText('user@example.com');
-                                    setEmail('user@example.com');
-                                }}
-                                title="Kopiuj email"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
-                            </Button>
-                        </div>
-                        <div className="flex items-center justify-between gap-2 p-2 bg-background rounded border">
-                            <code className="text-xs">password</code>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                onClick={() => {
-                                    navigator.clipboard.writeText('password');
-                                    setPassword('password');
-                                }}
-                                title="Kopiuj hasło"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
-                            </Button>
-                        </div>
-                    </div>
-                </div>
+
             </CardContent>
 
             <CardFooter className="flex flex-col space-y-4">
