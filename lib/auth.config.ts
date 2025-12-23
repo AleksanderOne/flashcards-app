@@ -8,7 +8,36 @@ import CredentialsProvider from 'next-auth/providers/credentials';
  * nie obsługuje bezpośrednich połączeń TCP do bazy danych.
  * 
  * Używamy strategii JWT dla sesji - token zawiera wszystkie potrzebne dane.
+ * 
+ * UWAGA: Obsługuje również sesje SSO z ciasteczka 'sso-session'.
  */
+
+/**
+ * Sprawdza czy użytkownik ma aktywną sesję SSO
+ */
+function hasSSOSession(request: Request): boolean {
+    const cookieHeader = request.headers.get('cookie');
+    if (!cookieHeader) return false;
+
+    // Szukamy ciasteczka sso-session
+    const cookies = cookieHeader.split(';').map(c => c.trim());
+    const ssoCookie = cookies.find(c => c.startsWith('sso-session='));
+
+    if (!ssoCookie) return false;
+
+    try {
+        // Dekodujemy wartość ciasteczka
+        const cookieValue = ssoCookie.split('=')[1];
+        const decodedValue = decodeURIComponent(cookieValue);
+        const session = JSON.parse(decodedValue);
+
+        // Sprawdzamy czy sesja nie wygasła
+        return session.expiresAt > Date.now();
+    } catch {
+        return false;
+    }
+}
+
 export const authConfig: NextAuthConfig = {
     providers: [
         GoogleProvider({
@@ -38,8 +67,12 @@ export const authConfig: NextAuthConfig = {
         maxAge: 30 * 24 * 60 * 60, // 30 dni
     },
     callbacks: {
-        authorized({ auth, request: { nextUrl } }) {
-            const isLoggedIn = !!auth?.user;
+        authorized({ auth, request: { nextUrl, ...request } }) {
+            // Sprawdzamy zarówno NextAuth jak i SSO
+            const isLoggedInNextAuth = !!auth?.user;
+            const isLoggedInSSO = hasSSOSession(request as Request);
+            const isLoggedIn = isLoggedInNextAuth || isLoggedInSSO;
+
             const pathname = nextUrl.pathname;
 
             // Chronione ścieżki - wymagają zalogowania
@@ -75,3 +108,4 @@ export const authConfig: NextAuthConfig = {
         },
     },
 };
+
