@@ -1,4 +1,4 @@
-import NextAuth, { NextAuthConfig } from 'next-auth';
+import NextAuth, { NextAuthConfig, Session } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
@@ -6,6 +6,7 @@ import { db } from '@/lib/db/drizzle';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
+import { getSSOSession } from '@/lib/sso-session';
 
 // Rozszerzenie typów NextAuth
 declare module 'next-auth' {
@@ -136,4 +137,64 @@ export const authConfig: NextAuthConfig = {
     },
 };
 
-export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+const nextAuth = NextAuth(authConfig);
+
+// Eksportujemy handlers i signIn/signOut bezpośrednio
+export const { handlers, signIn, signOut } = nextAuth;
+
+// Oryginalny auth z NextAuth
+const nextAuthAuth = nextAuth.auth;
+
+/**
+ * Zunifikowana funkcja auth() - sprawdza zarówno NextAuth jak i SSO session
+ * 
+ * Ta funkcja jest drop-in replacement dla oryginalnej auth() z NextAuth.
+ * Jeśli NextAuth nie ma sesji, sprawdza ciasteczko SSO i zwraca sesję
+ * w kompatybilnym formacie.
+ */
+export async function auth(): Promise<Session | null> {
+    // 1. Najpierw sprawdzamy NextAuth
+    const nextAuthSession = await nextAuthAuth();
+
+    if (nextAuthSession?.user) {
+        return nextAuthSession;
+    }
+
+    // 2. Jeśli nie ma NextAuth session, sprawdzamy SSO
+    const ssoSession = await getSSOSession();
+
+    if (ssoSession) {
+        // Pobieramy aktualne dane użytkownika z bazy (rola mogła się zmienić)
+        const dbUser = await db.query.users.findFirst({
+            where: eq(users.id, ssoSession.userId),
+            columns: {
+                id: true,
+                email: true,
+                name: true,
+                image: true,
+                role: true,
+                isBlocked: true,
+            }
+        });
+
+        // Jeśli użytkownik nie istnieje lub jest zablokowany, sesja jest nieważna
+        if (!dbUser || dbUser.isBlocked) {
+            return null;
+        }
+
+        // Zwracamy sesję w formacie kompatybilnym z NextAuth Session
+        return {
+            user: {
+                id: dbUser.id,
+                email: dbUser.email,
+                name: dbUser.name,
+                image: dbUser.image,
+                role: dbUser.role,
+            },
+            expires: new Date(ssoSession.expiresAt).toISOString(),
+        };
+    }
+
+    return null;
+}
+
