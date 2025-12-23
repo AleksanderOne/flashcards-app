@@ -35,12 +35,18 @@ function LoginContent() {
         setError('');
 
         // Przekierowanie do centrum logowania
-        // Używamy window.location żeby uzyskać aktualny origin (localhost vs produkcja)
         const baseUrl = window.location.origin;
+
+        // Sprawdzamy czy jest callbackUrl w parametrach (np. z middleware)
+        // albo używamy pathname przed logowaniem, albo domyślnie /learn
+        const returnTo = searchParams.get('callbackUrl') || '/learn';
+
+        // Zapisujemy stronę docelową w ciasteczku (API route może je odczytać)
+        document.cookie = `sso-return-url=${encodeURIComponent(returnTo)}; path=/; max-age=300; SameSite=Lax`;
+
         const callbackUrl = encodeURIComponent(`${baseUrl}/api/auth/sso-callback`);
 
         // Pobieramy konfigurację z zmiennych środowiskowych (client-side)
-        // Te wartości są publiczne i mogą być w NEXT_PUBLIC_*
         const centerUrl = process.env.NEXT_PUBLIC_SSO_CENTER_URL || 'https://centrum-logowania-app-y7gt.vercel.app';
         const clientId = process.env.NEXT_PUBLIC_SSO_CLIENT_ID || 'flashcards-uk61';
 

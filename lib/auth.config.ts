@@ -95,9 +95,11 @@ export const authConfig: NextAuthConfig = {
                 return Response.redirect(new URL('/learn', request.nextUrl));
             }
 
-            // Niezalogowany użytkownik próbuje wejść na chronioną stronę -> przekieruj do /login
+            // Niezalogowany użytkownik próbuje wejść na chronioną stronę -> przekieruj do /login z callbackUrl
             if (!isLoggedIn && isProtectedRoute) {
-                return Response.redirect(new URL('/login', request.nextUrl));
+                const loginUrl = new URL('/login', request.nextUrl);
+                loginUrl.searchParams.set('callbackUrl', pathname);
+                return Response.redirect(loginUrl);
             }
 
             return true;

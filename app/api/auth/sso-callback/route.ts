@@ -13,7 +13,7 @@ import { eq } from 'drizzle-orm';
  * 2. Wymieniamy kod na dane użytkownika przez API /api/v1/token
  * 3. Tworzymy/aktualizujemy użytkownika w lokalnej bazie
  * 4. Ustawiamy własne ciasteczko sesji
- * 5. Przekierowujemy do /learn
+ * 5. Przekierowujemy na stronę z której użytkownik przyszedł (lub /learn)
  */
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
@@ -86,12 +86,21 @@ export async function GET(request: NextRequest) {
             path: '/',
         });
 
-        // Sukces - przekierowanie do aplikacji
-        return NextResponse.redirect(new URL('/learn', baseUrl));
+        // Odczytujemy stronę docelową z ciasteczka (ustawionego przed logowaniem)
+        const returnUrlCookie = request.cookies.get('sso-return-url');
+        let returnUrl = '/learn'; // Domyślnie
+
+        if (returnUrlCookie?.value) {
+            returnUrl = decodeURIComponent(returnUrlCookie.value);
+            // Usuwamy ciasteczko po użyciu
+            cookieStore.delete('sso-return-url');
+        }
+
+        // Sukces - przekierowanie na stronę z której użytkownik przyszedł
+        return NextResponse.redirect(new URL(returnUrl, baseUrl));
 
     } catch (error) {
         console.error('SSO callback error:', error);
         return NextResponse.redirect(new URL('/login?error=server_error', baseUrl));
     }
 }
-
