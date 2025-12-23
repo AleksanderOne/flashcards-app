@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.redirect(new URL('/login?error=blocked', baseUrl));
         }
 
-        // Ustawiamy ciasteczko sesji SSO (przechowuje ID użytkownika)
+        // Ustawiamy ciasteczko sesji SSO (przechowuje ID użytkownika i tokenVersion)
         const cookieStore = await cookies();
         const sessionData = {
             userId: localUser.id,
@@ -76,6 +76,8 @@ export async function GET(request: NextRequest) {
             name: ssoUser.name,
             role: localUser.role,
             expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 dni
+            tokenVersion: ssoUser.tokenVersion || 1,  // Dla Kill Switch
+            lastVerified: Date.now(),  // Ostatnia weryfikacja = teraz (świeże logowanie)
         };
 
         cookieStore.set('sso-session', JSON.stringify(sessionData), {

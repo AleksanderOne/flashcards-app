@@ -9,6 +9,8 @@ export interface SSOSession {
     name: string | null;
     role: 'user' | 'admin';
     expiresAt: number;
+    tokenVersion?: number;   // Wersja tokenu z centrum (dla Kill Switch)
+    lastVerified?: number;   // Timestamp ostatniej weryfikacji z centrum
 }
 
 /**

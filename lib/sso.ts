@@ -70,6 +70,47 @@ export async function exchangeCodeForUser(
     }
 }
 
+/**
+ * Weryfikuje sesję użytkownika z centrum (sprawdza Kill Switch)
+ * 
+ * Wywoływane okresowo żeby sprawdzić czy użytkownik nie został wylogowany
+ * ze wszystkich urządzeń w centrum logowania.
+ */
+export async function verifySessionWithCenter(
+    userId: string,
+    tokenVersion: number
+): Promise<boolean> {
+    const { centerUrl, apiKey } = SSO_CONFIG;
+
+    try {
+        const response = await fetch(`${centerUrl}/api/v1/session/verify`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+            },
+            body: JSON.stringify({
+                userId,
+                tokenVersion,
+            }),
+            // Nie cache'ujemy weryfikacji
+            cache: 'no-store',
+        });
+
+        if (!response.ok) {
+            console.error('SSO session verification failed');
+            return false;
+        }
+
+        const result = await response.json();
+        return result.valid === true;
+    } catch (error) {
+        console.error('SSO session verification error:', error);
+        // W przypadku błędu sieci, uznajemy sesję za ważną (fail-open)
+        return true;
+    }
+}
+
 // Typy odpowiedzi z API centrum
 export interface SSOTokenResponse {
     user: {
@@ -78,10 +119,10 @@ export interface SSOTokenResponse {
         name: string | null;
         image: string | null;
         role: 'user' | 'admin';
+        tokenVersion?: number; // Wersja tokenu dla Kill Switch
     };
     project: {
         id: string;
         name: string;
     };
 }
-

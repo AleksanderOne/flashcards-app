@@ -145,12 +145,17 @@ export const { handlers, signIn, signOut } = nextAuth;
 // Oryginalny auth z NextAuth
 const nextAuthAuth = nextAuth.auth;
 
+// Czas między weryfikacjami sesji z centrum (5 minut)
+const SESSION_VERIFY_INTERVAL = 5 * 60 * 1000;
+
 /**
  * Zunifikowana funkcja auth() - sprawdza zarówno NextAuth jak i SSO session
  * 
  * Ta funkcja jest drop-in replacement dla oryginalnej auth() z NextAuth.
  * Jeśli NextAuth nie ma sesji, sprawdza ciasteczko SSO i zwraca sesję
  * w kompatybilnym formacie.
+ * 
+ * Dodatkowo co 5 minut weryfikuje sesję z centrum (Kill Switch).
  */
 export async function auth(): Promise<Session | null> {
     // 1. Najpierw sprawdzamy NextAuth
@@ -164,7 +169,32 @@ export async function auth(): Promise<Session | null> {
     const ssoSession = await getSSOSession();
 
     if (ssoSession) {
-        // Pobieramy aktualne dane użytkownika z bazy (rola mogła się zmienić)
+        // 3. Weryfikacja Kill Switch (co 5 minut)
+        const now = Date.now();
+        const lastVerified = ssoSession.lastVerified || 0;
+        const needsVerification = (now - lastVerified) > SESSION_VERIFY_INTERVAL;
+
+        if (needsVerification && ssoSession.tokenVersion) {
+            // Importujemy dynamicznie żeby uniknąć circular dependency
+            const { verifySessionWithCenter } = await import('@/lib/sso');
+            const { clearSSOSession } = await import('@/lib/sso-session');
+
+            const isValid = await verifySessionWithCenter(
+                ssoSession.userId,
+                ssoSession.tokenVersion
+            );
+
+            if (!isValid) {
+                // Sesja została unieważniona w centrum (Kill Switch)
+                await clearSSOSession();
+                return null;
+            }
+
+            // TODO: Aktualizacja lastVerified w ciasteczku wymaga response
+            // Na razie weryfikacja działa, ale ciasteczko nie jest aktualizowane
+        }
+
+        // 4. Pobieramy aktualne dane użytkownika z bazy (rola mogła się zmienić)
         const dbUser = await db.query.users.findFirst({
             where: eq(users.id, ssoSession.userId),
             columns: {
