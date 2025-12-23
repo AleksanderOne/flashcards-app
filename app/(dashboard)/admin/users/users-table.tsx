@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Plus, Shield, ShieldAlert, Ban, Save, Trash2, KeyRound, History, RotateCcw, Database } from 'lucide-react';
+import { MoreHorizontal, Plus, Shield, ShieldAlert, Ban, Trash2, History, RotateCcw, Database } from 'lucide-react';
 import {
     Sheet,
     SheetContent,
@@ -28,7 +28,6 @@ import {
     SheetFooter,
     SheetHeader,
     SheetTitle,
-    SheetTrigger,
 } from '@/components/ui/sheet';
 import {
     AlertDialog,
@@ -40,6 +39,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -47,13 +47,13 @@ import {
     toggleBlockUser,
     toggleUserRole,
     deleteUser,
-    resetUserPassword,
     createUser,
     deleteUserData,
     deleteUserHistory,
     resetUserProgress
 } from './actions';
 import { toast } from 'sonner';
+import { Info } from 'lucide-react';
 
 type User = {
     id: string;
@@ -70,18 +70,15 @@ export function UsersTable({ users }: { users: User[] }) {
 
     // Stan dla okien dialogowych
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [isPasswordOpen, setIsPasswordOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-    // Stan formularzy
+    // Stan formularza tworzenia (bez hasła - logowanie przez SSO)
     const [newUser, setNewUser] = useState<{
         name: string;
         email: string;
-        password: string;
         role: 'user' | 'admin';
-    }>({ name: '', email: '', password: '', role: 'user' });
-    const [newPassword, setNewPassword] = useState('');
+    }>({ name: '', email: '', role: 'user' });
 
     const handleAction = async (action: () => Promise<void>) => {
         setIsLoading(true);
@@ -90,7 +87,7 @@ export function UsersTable({ users }: { users: User[] }) {
             router.refresh();
         } catch (error) {
             console.error('Wystąpił błąd:', error);
-            alert('Wystąpił błąd');
+            toast.error('Wystąpił błąd');
         } finally {
             setIsLoading(false);
             closeAll();
@@ -99,11 +96,9 @@ export function UsersTable({ users }: { users: User[] }) {
 
     const closeAll = () => {
         setIsCreateOpen(false);
-        setIsPasswordOpen(false);
         setIsDeleteOpen(false);
         setSelectedUser(null);
-        setNewUser({ name: '', email: '', password: '', role: 'user' });
-        setNewPassword('');
+        setNewUser({ name: '', email: '', role: 'user' });
     };
 
     return (
@@ -164,10 +159,6 @@ export function UsersTable({ users }: { users: User[] }) {
                                                 <Ban className="mr-2 h-4 w-4" /> {user.isBlocked ? 'Odblokuj' : 'Zablokuj'}
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
-                                            <DropdownMenuItem onClick={() => { setSelectedUser(user); setIsPasswordOpen(true); }}>
-                                                <KeyRound className="mr-2 h-4 w-4" /> Zmień hasło
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
                                             <DropdownMenuLabel>Zarządzanie danymi</DropdownMenuLabel>
                                             <DropdownMenuItem className="text-orange-600" onClick={async () => {
                                                 try {
@@ -221,10 +212,18 @@ export function UsersTable({ users }: { users: User[] }) {
                     <SheetHeader>
                         <SheetTitle>Dodaj nowego użytkownika</SheetTitle>
                         <SheetDescription>
-                            Utwórz nowe konto użytkownika ręcznie.
+                            Utwórz nowe konto użytkownika. Użytkownik będzie mógł się zalogować
+                            przez Centrum Logowania.
                         </SheetDescription>
                     </SheetHeader>
                     <div className="space-y-4 py-4">
+                        <Alert>
+                            <Info className="h-4 w-4" />
+                            <AlertDescription>
+                                Użytkownik musi posiadać konto w Centrum Logowania z tym samym adresem email,
+                                aby móc się zalogować do tej aplikacji.
+                            </AlertDescription>
+                        </Alert>
                         <Field>
                             <FieldLabel>Nazwa</FieldLabel>
                             <Input value={newUser.name} onChange={e => setNewUser({ ...newUser, name: e.target.value })} />
@@ -232,10 +231,6 @@ export function UsersTable({ users }: { users: User[] }) {
                         <Field>
                             <FieldLabel>Email</FieldLabel>
                             <Input value={newUser.email} onChange={e => setNewUser({ ...newUser, email: e.target.value })} />
-                        </Field>
-                        <Field>
-                            <FieldLabel>Hasło</FieldLabel>
-                            <Input type="password" value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })} />
                         </Field>
                         <Field>
                             <FieldLabel>Rola</FieldLabel>
@@ -251,31 +246,8 @@ export function UsersTable({ users }: { users: User[] }) {
                         </Field>
                     </div>
                     <SheetFooter>
-                        <Button onClick={() => handleAction(() => createUser(newUser))} disabled={!newUser.email || !newUser.password || isLoading}>
+                        <Button onClick={() => handleAction(() => createUser(newUser))} disabled={!newUser.email || isLoading}>
                             {isLoading ? 'Tworzenie...' : 'Utwórz'}
-                        </Button>
-                    </SheetFooter>
-                </SheetContent>
-            </Sheet>
-
-            {/* Panel zmiany hasła */}
-            <Sheet open={isPasswordOpen} onOpenChange={setIsPasswordOpen}>
-                <SheetContent>
-                    <SheetHeader>
-                        <SheetTitle>Zmień hasło</SheetTitle>
-                        <SheetDescription>
-                            Ustaw nowe hasło dla {selectedUser?.email}
-                        </SheetDescription>
-                    </SheetHeader>
-                    <div className="space-y-4 py-4">
-                        <Field>
-                            <FieldLabel>Nowe hasło</FieldLabel>
-                            <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
-                        </Field>
-                    </div>
-                    <SheetFooter>
-                        <Button onClick={() => { if (selectedUser) handleAction(() => resetUserPassword(selectedUser.id, newPassword)); }} disabled={!newPassword || isLoading}>
-                            {isLoading ? 'Zapisywanie...' : 'Zapisz hasło'}
                         </Button>
                     </SheetFooter>
                 </SheetContent>

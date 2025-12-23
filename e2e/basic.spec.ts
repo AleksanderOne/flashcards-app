@@ -15,14 +15,18 @@ test.describe('Aplikacja Flashcards (E2E Basic)', () => {
         await expect(page).toHaveURL(/.*\/login/);
     });
 
-    test('Strona logowania powinna zawierać formularz', async ({ page }) => {
+    test('Strona logowania powinna zawierać przycisk SSO', async ({ page }) => {
         await page.goto('/login');
         // Czekamy na załadowanie formularza (client-side rendering)
         await page.waitForLoadState('networkidle');
-        // Sprawdź obecność pól hasła i email
-        await expect(page.locator('input[type="email"]')).toBeVisible({ timeout: 10000 });
-        await expect(page.locator('input[type="password"]')).toBeVisible();
-        // Sprawdź przycisk
-        await expect(page.locator('button[type="submit"]')).toBeVisible();
+        // Sprawdzamy przycisk logowania przez centrum (SSO)
+        await expect(page.locator('text=Zaloguj przez Centrum')).toBeVisible({ timeout: 10000 });
+    });
+
+    test('Strona logowania powinna wyświetlać informację o bezpieczeństwie', async ({ page }) => {
+        await page.goto('/login');
+        await page.waitForLoadState('networkidle');
+        // Sprawdzamy informację o bezpiecznym logowaniu
+        await expect(page.locator('text=Bezpieczne logowanie')).toBeVisible({ timeout: 10000 });
     });
 });

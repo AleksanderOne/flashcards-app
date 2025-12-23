@@ -1,30 +1,85 @@
-import NextAuth from 'next-auth';
-import { authConfig } from '@/lib/auth.config';
+import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * Middleware autoryzacji dla Edge Runtime.
+ * Proxy dla Edge Runtime - ochrona tras
  * 
- * WAŻNE: Używamy auth.config.ts zamiast auth.ts, ponieważ:
- * - Edge Runtime na Vercelu nie obsługuje połączeń TCP do bazy danych
- * - DrizzleAdapter wymaga bezpośredniego połączenia z bazą
- * - Callback `authorized` w authConfig obsługuje logikę przekierowań
- * 
- * Logika przekierowań jest zdefiniowana w lib/auth.config.ts -> callbacks.authorized
+ * Sprawdza sesję SSO z ciasteczka i przekierowuje niezalogowanych użytkowników.
  */
-const { auth } = NextAuth(authConfig);
 
-// Next.js 16 wymaga eksportu funkcji o nazwie "proxy"
-export const proxy = auth;
+/**
+ * Sprawdza czy użytkownik ma aktywną sesję SSO
+ */
+function hasSSOSession(request: NextRequest): boolean {
+    try {
+        const ssoCookie = request.cookies.get('sso-session');
+
+        if (!ssoCookie?.value) return false;
+
+        // Dekodujemy wartość ciasteczka
+        const decodedValue = decodeURIComponent(ssoCookie.value);
+        const session = JSON.parse(decodedValue);
+
+        // Sprawdzamy czy sesja nie wygasła
+        return session.expiresAt > Date.now();
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Główna funkcja proxy (middleware)
+ */
+export function proxy(request: NextRequest) {
+    const isLoggedIn = hasSSOSession(request);
+    const pathname = request.nextUrl.pathname;
+
+    // Chronione ścieżki - wymagają zalogowania
+    const protectedPaths = [
+        '/learn',
+        '/challenge',
+        '/my-words',
+        '/all-words',
+        '/statistics',
+        '/achievements',
+        '/print-words',
+        '/settings',
+        '/admin',
+    ];
+
+    // Publiczne ścieżki (tylko dla niezalogowanych)
+    const publicAuthPaths = ['/login'];
+
+    const isProtectedRoute = protectedPaths.some(path => pathname.startsWith(path));
+    const isPublicAuthRoute = publicAuthPaths.some(path => pathname.startsWith(path));
+
+    // Zalogowany użytkownik próbuje wejść na login -> przekieruj do /learn
+    if (isLoggedIn && isPublicAuthRoute) {
+        return NextResponse.redirect(new URL('/learn', request.nextUrl));
+    }
+
+    // Niezalogowany użytkownik próbuje wejść na chronioną stronę -> przekieruj do /login
+    if (!isLoggedIn && isProtectedRoute) {
+        const loginUrl = new URL('/login', request.nextUrl);
+        loginUrl.searchParams.set('callbackUrl', pathname);
+        return NextResponse.redirect(loginUrl);
+    }
+
+    return NextResponse.next();
+}
 
 export const config = {
     matcher: [
-        /*
-         * Match all request paths except for the ones starting with:
-         * - api (API routes)
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
-         */
-        '/((?!api|_next/static|_next/image|favicon.ico).*)',
+        // Chronione trasy
+        '/learn/:path*',
+        '/challenge/:path*',
+        '/my-words/:path*',
+        '/all-words/:path*',
+        '/statistics/:path*',
+        '/achievements/:path*',
+        '/print-words/:path*',
+        '/settings/:path*',
+        '/admin/:path*',
+        // Auth trasy
+        '/login',
     ],
 };

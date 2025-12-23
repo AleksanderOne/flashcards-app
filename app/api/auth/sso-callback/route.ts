@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { exchangeCodeForUser, SSO_CONFIG } from '@/lib/sso';
+import { exchangeCodeForUser, getCallbackUrl } from '@/lib/sso-client';
 import { db } from '@/lib/db/drizzle';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Wymiana kodu na dane użytkownika przez API centrum
-    const redirectUri = SSO_CONFIG.getCallbackUrl(baseUrl);
+    const redirectUri = getCallbackUrl(baseUrl);
     const tokenResult = await exchangeCodeForUser(code, redirectUri);
 
     if (!tokenResult) {

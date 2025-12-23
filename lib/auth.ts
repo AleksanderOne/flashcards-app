@@ -1,230 +1,91 @@
-import NextAuth, { NextAuthConfig, Session } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import GoogleProvider from 'next-auth/providers/google';
-import { DrizzleAdapter } from '@auth/drizzle-adapter';
+import { getSSOSession, clearSSOSession, verifySessionWithCenter, SSO_CONFIG } from '@/lib/sso-client';
 import { db } from '@/lib/db/drizzle';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import bcrypt from 'bcryptjs';
-import { getSSOSession } from '@/lib/sso-session';
 
-// Rozszerzenie typów NextAuth
-declare module 'next-auth' {
-    interface Session {
-        user: {
-            id: string;
-            email: string;
-            name?: string | null;
-            image?: string | null;
-            role: 'user' | 'admin';
-        };
-    }
-
-    interface User {
+/**
+ * Typ sesji użytkownika - kompatybilny z poprzednim NextAuth Session
+ */
+export interface Session {
+    user: {
         id: string;
         email: string;
         name?: string | null;
         image?: string | null;
         role: 'user' | 'admin';
-    }
+    };
+    expires: string;
 }
 
-declare module '@auth/core/jwt' {
-    interface JWT {
-        id: string;
-        role: 'user' | 'admin';
-    }
-}
 
-export const authConfig: NextAuthConfig = {
-    // Asercja typów wymagana ze względu na niezgodność wersji @auth/core
-    // między next-auth (0.41.0) a @auth/drizzle-adapter (0.41.1)
-    adapter: DrizzleAdapter(db) as NextAuthConfig['adapter'],
-    providers: [
-        GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        }),
-        CredentialsProvider({
-            name: 'credentials',
-            credentials: {
-                email: { label: 'Email', type: 'email' },
-                password: { label: 'Password', type: 'password' },
-            },
-            async authorize(credentials) {
-                if (!credentials?.email || !credentials?.password) {
-                    throw new Error('Email i hasło są wymagane');
-                }
-
-                const user = await db.query.users.findFirst({
-                    where: eq(users.email, credentials.email as string),
-                });
-
-                if (!user || !user.password) {
-                    throw new Error('Nieprawidłowy email lub hasło');
-                }
-
-                if (user.isBlocked) {
-                    throw new Error('To konto zostało zablokowane.');
-                }
-
-                const isPasswordValid = await bcrypt.compare(
-                    credentials.password as string,
-                    user.password
-                );
-
-                if (!isPasswordValid) {
-                    throw new Error('Nieprawidłowy email lub hasło');
-                }
-
-                return {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    image: user.image,
-                    role: user.role,
-                };
-            },
-        }),
-    ],
-    pages: {
-        signIn: '/login',
-        signOut: '/login',
-        error: '/login',
-    },
-    session: {
-        strategy: 'jwt',
-        maxAge: 30 * 24 * 60 * 60, // 30 dni
-    },
-    callbacks: {
-        async signIn({ user }) {
-            if (!user.email) return false;
-
-            const dbUser = await db.query.users.findFirst({
-                where: eq(users.email, user.email),
-                columns: { isBlocked: true }
-            });
-
-            if (dbUser?.isBlocked) {
-                return false;
-            }
-            return true;
-        },
-        async jwt({ token, user, account }) {
-            if (user) {
-                token.id = user.id;
-                token.role = user.role;
-            }
-            // Pobierz rolę z bazy jeśli nie ma w tokenie
-            if (!token.role && token.email) {
-                const dbUser = await db.query.users.findFirst({
-                    where: eq(users.email, token.email as string),
-                    columns: { role: true }
-                });
-                if (dbUser) {
-                    token.role = dbUser.role;
-                }
-            }
-            return token;
-        },
-        async session({ session, token }) {
-            if (session.user) {
-                session.user.id = token.id as string;
-                session.user.role = token.role as 'user' | 'admin';
-            }
-            return session;
-        },
-    },
-};
-
-const nextAuth = NextAuth(authConfig);
-
-// Eksportujemy handlers i signIn/signOut bezpośrednio
-export const { handlers, signIn, signOut } = nextAuth;
-
-// Oryginalny auth z NextAuth
-const nextAuthAuth = nextAuth.auth;
-
-// Czas między weryfikacjami sesji z centrum (5 minut)
-const SESSION_VERIFY_INTERVAL = 5 * 60 * 1000;
 
 /**
- * Zunifikowana funkcja auth() - sprawdza zarówno NextAuth jak i SSO session
+ * Główna funkcja auth() - sprawdza sesję SSO z centrum logowania
  * 
- * Ta funkcja jest drop-in replacement dla oryginalnej auth() z NextAuth.
- * Jeśli NextAuth nie ma sesji, sprawdza ciasteczko SSO i zwraca sesję
- * w kompatybilnym formacie.
+ * Flow:
+ * 1. Pobiera sesję z ciasteczka sso-session
+ * 2. Weryfikuje ważność sesji (czas wygaśnięcia)
+ * 3. Co 5 minut weryfikuje z centrum (Kill Switch)
+ * 4. Pobiera aktualne dane użytkownika z lokalnej bazy
  * 
- * Dodatkowo co 5 minut weryfikuje sesję z centrum (Kill Switch).
+ * Zwraca obiekt Session dla łatwej migracji z NextAuth.
  */
 export async function auth(): Promise<Session | null> {
-    // 1. Najpierw sprawdzamy NextAuth
-    const nextAuthSession = await nextAuthAuth();
-
-    if (nextAuthSession?.user) {
-        return nextAuthSession;
-    }
-
-    // 2. Jeśli nie ma NextAuth session, sprawdzamy SSO
+    // 1. Pobieramy sesję SSO z ciasteczka
     const ssoSession = await getSSOSession();
 
-    if (ssoSession) {
-        // 3. Weryfikacja Kill Switch (co 5 minut)
-        const now = Date.now();
-        const lastVerified = ssoSession.lastVerified || 0;
-        const needsVerification = (now - lastVerified) > SESSION_VERIFY_INTERVAL;
+    if (!ssoSession) {
+        return null;
+    }
 
-        if (needsVerification && ssoSession.tokenVersion) {
-            // Importujemy dynamicznie żeby uniknąć circular dependency
-            const { verifySessionWithCenter } = await import('@/lib/sso');
-            const { clearSSOSession } = await import('@/lib/sso-session');
+    // 2. Weryfikacja Kill Switch (co 5 minut)
+    const now = Date.now();
+    const lastVerified = ssoSession.lastVerified || 0;
+    const needsVerification = (now - lastVerified) > SSO_CONFIG.verifyInterval;
 
-            const isValid = await verifySessionWithCenter(
-                ssoSession.userId,
-                ssoSession.tokenVersion
-            );
+    if (needsVerification && ssoSession.tokenVersion) {
+        const isValid = await verifySessionWithCenter(
+            ssoSession.userId,
+            ssoSession.tokenVersion
+        );
 
-            if (!isValid) {
-                // Sesja została unieważniona w centrum (Kill Switch)
-                await clearSSOSession();
-                return null;
-            }
-
-            // TODO: Aktualizacja lastVerified w ciasteczku wymaga response
-            // Na razie weryfikacja działa, ale ciasteczko nie jest aktualizowane
-        }
-
-        // 4. Pobieramy aktualne dane użytkownika z bazy (rola mogła się zmienić)
-        const dbUser = await db.query.users.findFirst({
-            where: eq(users.id, ssoSession.userId),
-            columns: {
-                id: true,
-                email: true,
-                name: true,
-                image: true,
-                role: true,
-                isBlocked: true,
-            }
-        });
-
-        // Jeśli użytkownik nie istnieje lub jest zablokowany, sesja jest nieważna
-        if (!dbUser || dbUser.isBlocked) {
+        if (!isValid) {
+            // Sesja została unieważniona w centrum (Kill Switch)
+            await clearSSOSession();
             return null;
         }
 
-        // Zwracamy sesję w formacie kompatybilnym z NextAuth Session
-        return {
-            user: {
-                id: dbUser.id,
-                email: dbUser.email,
-                name: dbUser.name,
-                image: dbUser.image,
-                role: dbUser.role,
-            },
-            expires: new Date(ssoSession.expiresAt).toISOString(),
-        };
+        // TODO: Aktualizacja lastVerified w ciasteczku wymaga response
+        // Na razie weryfikacja działa, ale ciasteczko nie jest aktualizowane
     }
 
-    return null;
-}
+    // 3. Pobieramy aktualne dane użytkownika z lokalnej bazy
+    const dbUser = await db.query.users.findFirst({
+        where: eq(users.id, ssoSession.userId),
+        columns: {
+            id: true,
+            email: true,
+            name: true,
+            image: true,
+            role: true,
+            isBlocked: true,
+        }
+    });
 
+    // Jeśli użytkownik nie istnieje lub jest zablokowany, sesja jest nieważna
+    if (!dbUser || dbUser.isBlocked) {
+        return null;
+    }
+
+    // 4. Zwracamy sesję
+    return {
+        user: {
+            id: dbUser.id,
+            email: dbUser.email,
+            name: dbUser.name,
+            image: dbUser.image,
+            role: dbUser.role,
+        },
+        expires: new Date(ssoSession.expiresAt).toISOString(),
+    };
+}

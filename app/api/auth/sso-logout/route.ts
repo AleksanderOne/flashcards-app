@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { clearSSOSession } from '@/lib/sso-session';
+import { clearSSOSession } from '@/lib/sso-client';
 
 /**
  * Endpoint wylogowania z SSO

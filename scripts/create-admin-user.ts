@@ -1,19 +1,22 @@
 import { config } from 'dotenv';
-import { hash } from 'bcryptjs';
 import { users } from '../lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 
 config({ path: '.env.local' });
 
+/**
+ * Skrypt do tworzenia/aktualizacji użytkownika admina w lokalnej bazie danych.
+ * 
+ * UWAGA: Użytkownik będzie mógł się zalogować tylko przez SSO (Centrum Logowania).
+ * Musi posiadać konto Google powiązane z tym samym adresem email w centrum.
+ */
 async function main() {
     console.log('Łączenie z bazą danych...');
     // Dynamic import to ensure env vars are loaded
     const { db } = await import('../lib/db/drizzle');
 
     const email = 'admin@example.com';
-    const password = 'admin';
-    const hashedPassword = await hash(password, 10);
 
     console.log(`Sprawdzanie użytkownika ${email}...`);
     const existingUser = await db.query.users.findFirst({
@@ -21,10 +24,9 @@ async function main() {
     });
 
     if (existingUser) {
-        console.log('Aktualizacja istniejącego użytkownika admina...');
+        console.log('Aktualizacja istniejącego użytkownika na admina...');
         await db.update(users)
             .set({
-                password: hashedPassword,
                 role: 'admin',
                 isBlocked: false
             })
@@ -35,7 +37,7 @@ async function main() {
             id: randomUUID(),
             email,
             name: 'Admin User',
-            password: hashedPassword,
+            // Brak hasła - logowanie tylko przez SSO
             role: 'admin',
             isBlocked: false,
             image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
@@ -44,9 +46,11 @@ async function main() {
     }
 
     console.log('----------------------------------------');
-    console.log('✅ Dane logowania admina:');
-    console.log(`Email:    ${email}`);
-    console.log(`Hasło:    ${password}`);
+    console.log('✅ Użytkownik admin utworzony/zaktualizowany:');
+    console.log(`Email: ${email}`);
+    console.log('');
+    console.log('UWAGA: Aby się zalogować, użytkownik musi posiadać');
+    console.log('konto Google z tym emailem w Centrum Logowania.');
     console.log('----------------------------------------');
 
     process.exit(0);

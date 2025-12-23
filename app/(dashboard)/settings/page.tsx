@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { DeleteDataForm } from './_components/delete-data-form';
 import { EditNameForm } from './_components/edit-name-form';
 import { EditEmailForm } from './_components/edit-email-form';
-import { ChangePasswordForm } from './_components/change-password-form';
 import { db } from '@/lib/db/drizzle';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 
 export default async function SettingsPage() {
     const session = await auth();
@@ -23,7 +24,6 @@ export default async function SettingsPage() {
             name: true,
             email: true,
             role: true,
-            password: true,
             createdAt: true
         }
     });
@@ -31,8 +31,6 @@ export default async function SettingsPage() {
     if (!user) {
         redirect('/login');
     }
-
-    const hasPassword = !!user.password;
 
     return (
         <div className="p-8 space-y-8">
@@ -52,9 +50,17 @@ export default async function SettingsPage() {
                         </div>
                     </div>
 
+                    {/* Informacja o SSO */}
                     <div>
                         <h3 className="text-xl font-semibold mb-4">Bezpieczeństwo</h3>
-                        <ChangePasswordForm hasPassword={hasPassword} />
+                        <Alert>
+                            <Info className="h-4 w-4" />
+                            <AlertTitle>Logowanie przez Centrum</AlertTitle>
+                            <AlertDescription>
+                                Twoje konto jest powiązane z Centrum Logowania. Zmiana hasła i zarządzanie
+                                bezpieczeństwem odbywa się poprzez konto Google połączone z Centrum.
+                            </AlertDescription>
+                        </Alert>
                     </div>
                 </div>
 
