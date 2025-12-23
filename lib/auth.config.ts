@@ -1,6 +1,7 @@
 import type { NextAuthConfig } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { NextRequest } from 'next/server';
 
 /**
  * Konfiguracja auth dla Edge Runtime (middleware/proxy).
@@ -15,20 +16,15 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 /**
  * Sprawdza czy użytkownik ma aktywną sesję SSO
  */
-function hasSSOSession(request: Request): boolean {
-    const cookieHeader = request.headers.get('cookie');
-    if (!cookieHeader) return false;
-
-    // Szukamy ciasteczka sso-session
-    const cookies = cookieHeader.split(';').map(c => c.trim());
-    const ssoCookie = cookies.find(c => c.startsWith('sso-session='));
-
-    if (!ssoCookie) return false;
-
+function hasSSOSession(request: NextRequest): boolean {
     try {
+        // Używamy NextRequest.cookies API
+        const ssoCookie = request.cookies.get('sso-session');
+
+        if (!ssoCookie?.value) return false;
+
         // Dekodujemy wartość ciasteczka
-        const cookieValue = ssoCookie.split('=')[1];
-        const decodedValue = decodeURIComponent(cookieValue);
+        const decodedValue = decodeURIComponent(ssoCookie.value);
         const session = JSON.parse(decodedValue);
 
         // Sprawdzamy czy sesja nie wygasła
@@ -67,13 +63,13 @@ export const authConfig: NextAuthConfig = {
         maxAge: 30 * 24 * 60 * 60, // 30 dni
     },
     callbacks: {
-        authorized({ auth, request: { nextUrl, ...request } }) {
+        authorized({ auth, request }) {
             // Sprawdzamy zarówno NextAuth jak i SSO
             const isLoggedInNextAuth = !!auth?.user;
-            const isLoggedInSSO = hasSSOSession(request as Request);
+            const isLoggedInSSO = hasSSOSession(request as NextRequest);
             const isLoggedIn = isLoggedInNextAuth || isLoggedInSSO;
 
-            const pathname = nextUrl.pathname;
+            const pathname = request.nextUrl.pathname;
 
             // Chronione ścieżki - wymagają zalogowania
             const protectedPaths = [
@@ -96,16 +92,15 @@ export const authConfig: NextAuthConfig = {
 
             // Zalogowany użytkownik próbuje wejść na login/register -> przekieruj do /learn
             if (isLoggedIn && isPublicRoute) {
-                return Response.redirect(new URL('/learn', nextUrl));
+                return Response.redirect(new URL('/learn', request.nextUrl));
             }
 
             // Niezalogowany użytkownik próbuje wejść na chronioną stronę -> przekieruj do /login
             if (!isLoggedIn && isProtectedRoute) {
-                return Response.redirect(new URL('/login', nextUrl));
+                return Response.redirect(new URL('/login', request.nextUrl));
             }
 
             return true;
         },
     },
 };
-
