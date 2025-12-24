@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db/drizzle';
 import { wordProgress, words } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, or, ilike, and } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
 import {
     Table,
@@ -17,11 +17,31 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { AddWordDialog } from '@/components/add-word-dialog';
 import { ImportWordsDialog } from '@/components/import-words-dialog';
+import { PageLayout } from '@/components/page-layout';
+import { Search } from '@/components/search';
 
-export default async function MyWordsPage() {
+interface MyWordsPageProps {
+    searchParams: Promise<{
+        query?: string;
+    }>;
+}
+
+export default async function MyWordsPage(props: MyWordsPageProps) {
+    const searchParams = await props.searchParams;
+    const query = searchParams.query || '';
     const session = await auth();
     if (!session || !session.user || !session.user.id) {
         redirect('/login');
+    }
+
+    // Buduj warunki filtrowania
+    const filters = [eq(wordProgress.userId, session.user.id)];
+    
+    if (query) {
+        filters.push(or(
+            ilike(words.english, `%${query}%`),
+            ilike(words.polish, `%${query}%`)
+        )!);
     }
 
     const userProgress = await db
@@ -36,41 +56,47 @@ export default async function MyWordsPage() {
         })
         .from(wordProgress)
         .innerJoin(words, eq(wordProgress.wordEnglish, words.english))
-        .where(eq(wordProgress.userId, session.user.id))
+        .where(and(...filters))
         .orderBy(desc(wordProgress.lastReviewed));
 
     if (userProgress.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 space-y-4">
-                <h2 className="text-2xl font-bold">Jeszcze nic nie umiesz? 😉</h2>
-                <p className="text-muted-foreground text-center max-w-md">
-                    Rozpocznij swoją pierwszą sesję nauki, aby zobaczyć tutaj postępy.
-                </p>
-                <div className="flex gap-4">
-                    <a href="/learn" className="px-6 py-3 bg-primary text-primary-foreground rounded-lg">
-                        Zacznij naukę
-                    </a>
-                    <AddWordDialog />
-                    <ImportWordsDialog />
+            <PageLayout>
+                <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+                    <h2 className="text-2xl font-bold">Jeszcze nic nie umiesz? 😉</h2>
+                    <p className="text-muted-foreground text-center max-w-md">
+                        Rozpocznij swoją pierwszą sesję nauki, aby zobaczyć tutaj postępy.
+                    </p>
+                    <div className="flex gap-4">
+                        <a href="/learn" className="px-6 py-3 bg-primary text-primary-foreground rounded-lg">
+                            Zacznij naukę
+                        </a>
+                        <AddWordDialog />
+                        <ImportWordsDialog />
+                    </div>
                 </div>
-            </div>
+            </PageLayout>
         )
     }
 
     return (
-        <div className="p-8 space-y-8">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Moje Postępy</h2>
-                    <p className="text-muted-foreground">Słówka, których się uczysz i ich status.</p>
-                </div>
-                <div className="flex gap-2">
+        <PageLayout
+            title="Moje Postępy"
+            description={`Słówka, których się uczysz i ich status. ${userProgress.length} ${userProgress.length === 1 ? 'słówko' : userProgress.length < 5 ? 'słówka' : 'słówek'}`}
+            actions={
+                <>
                     <ImportWordsDialog />
                     <AddWordDialog />
+                </>
+            }
+        >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="flex-1 min-w-0">
+                    <Search placeholder="Szukaj słówka..." />
                 </div>
             </div>
 
-            <div className="rounded-md border bg-white dark:bg-black">
+            <div className="rounded-md border bg-white dark:bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -110,6 +136,6 @@ export default async function MyWordsPage() {
                     </TableBody>
                 </Table>
             </div>
-        </div>
+        </PageLayout>
     );
 }

@@ -1,13 +1,26 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Printer, Download, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { 
+    Printer, 
+    Download, 
+    Loader2, 
+    FileText, 
+    BookOpen, 
+    AlertTriangle, 
+    Calendar, 
+    MousePointerClick,
+    Filter,
+    Sparkles
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { levelColors, type LevelKey } from '@/lib/colors';
 
 interface Word {
     id: string;
@@ -23,8 +36,51 @@ interface Word {
     };
 }
 
+type FilterType = 'all' | 'learning' | 'difficult' | 'custom' | 'period';
+
+const FILTER_OPTIONS: { id: FilterType; label: string; description: string; icon: React.ReactNode }[] = [
+    {
+        id: 'all',
+        label: 'Wszystkie słówka',
+        description: 'Filtruj po kategoriach i poziomach',
+        icon: <FileText className="w-5 h-5" />
+    },
+    {
+        id: 'learning',
+        label: 'W trakcie nauki',
+        description: 'Słówka, które aktualnie powtarzasz',
+        icon: <BookOpen className="w-5 h-5" />
+    },
+    {
+        id: 'difficult',
+        label: 'Trudne słówka',
+        description: 'Słówka z niskim współczynnikiem',
+        icon: <AlertTriangle className="w-5 h-5" />
+    },
+    {
+        id: 'period',
+        label: 'Okres czasowy',
+        description: 'Słówka z wybranego zakresu dat',
+        icon: <Calendar className="w-5 h-5" />
+    },
+    {
+        id: 'custom',
+        label: 'Własny wybór',
+        description: 'Wybierz konkretne słówka ręcznie',
+        icon: <MousePointerClick className="w-5 h-5" />
+    }
+];
+
+/**
+ * Helper do pobierania klas badge dla poziomu CEFR
+ */
+function getLevelBadgeClasses(level: string): string {
+    const normalizedLevel = level.toUpperCase() as LevelKey;
+    return levelColors[normalizedLevel]?.badge ?? levelColors.A1.badge;
+}
+
 export default function PrintWordsClient() {
-    const [filterType, setFilterType] = useState<'all' | 'learning' | 'difficult' | 'custom' | 'period'>('all');
+    const [filterType, setFilterType] = useState<FilterType>('all');
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -36,7 +92,7 @@ export default function PrintWordsClient() {
     const [loadingWords, setLoadingWords] = useState(false);
 
     const categories = ['Animals', 'Food', 'Travel', 'Technology', 'Business', 'Education', 'Health', 'Sports', 'General'];
-    const levels = ['A1', 'A2', 'B1', 'B2', 'C1'];
+    const levels: LevelKey[] = ['A1', 'A2', 'B1', 'B2', 'C1'];
 
     // Pobierz wszystkie słówka dla trybu custom
     useEffect(() => {
@@ -123,70 +179,96 @@ export default function PrintWordsClient() {
     };
 
     return (
-        <div>
+        <div className="space-y-6">
             {/* Panel filtrów - ukrywany przy druku */}
-            <Card className="print:hidden mb-6">
-                <CardHeader>
-                    <CardTitle>Wybierz kryteria filtrowania</CardTitle>
+            <Card className="print:hidden border-2 border-accent-violet-muted shadow-lg overflow-hidden !py-0">
+                <CardHeader className="flex flex-row items-center gap-3 bg-gradient-to-r from-primary/10 via-accent-fuchsia/10 to-accent-violet/10 dark:from-primary/20 dark:via-accent-fuchsia/15 dark:to-accent-violet/20 border-b py-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent-fuchsia flex items-center justify-center text-white shadow-lg shrink-0">
+                        <Filter className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <CardTitle className="text-xl">Generator listy słówek</CardTitle>
+                        <CardDescription>Wybierz kryteria i wygeneruj listę do druku</CardDescription>
+                    </div>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                    <RadioGroup value={filterType} onValueChange={(value: any) => setFilterType(value)}>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="all" id="all" />
-                            <Label htmlFor="all">Wszystkie słówka (z filtrami)</Label>
+                <CardContent className="p-6 space-y-6">
+                    {/* Wybór typu filtra - karty */}
+                    <div>
+                        <Label className="text-sm font-medium text-muted-foreground mb-3 block">Tryb generowania</Label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                            {FILTER_OPTIONS.map((option) => (
+                                <button
+                                    key={option.id}
+                                    onClick={() => setFilterType(option.id)}
+                                    className={cn(
+                                        "relative p-4 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-md",
+                                        filterType === option.id
+                                            ? "border-primary bg-accent-violet-muted ring-1 ring-primary shadow-md"
+                                            : "border-border hover:border-primary/50 bg-card"
+                                    )}
+                                >
+                                    <div className={cn(
+                                        "w-10 h-10 rounded-lg flex items-center justify-center mb-3 transition-colors",
+                                        filterType === option.id
+                                            ? "bg-gradient-to-br from-primary to-accent-fuchsia text-white"
+                                            : "bg-muted text-muted-foreground"
+                                    )}>
+                                        {option.icon}
+                                    </div>
+                                    <div className="font-medium text-sm">{option.label}</div>
+                                    <div className="text-xs text-muted-foreground mt-1">{option.description}</div>
+                                    {filterType === option.id && (
+                                        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
+                                    )}
+                                </button>
+                            ))}
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="learning" id="learning" />
-                            <Label htmlFor="learning">Słówka w trakcie nauki</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="difficult" id="difficult" />
-                            <Label htmlFor="difficult">Słówka trudne do zapamiętania</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="period" id="period" />
-                            <Label htmlFor="period">Słówka uczone w określonym okresie</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="custom" id="custom" />
-                            <Label htmlFor="custom">Wybierz konkretne słówka</Label>
-                        </div>
-                    </RadioGroup>
+                    </div>
 
                     {/* Filtry dla trybu "all" */}
                     {filterType === 'all' && (
-                        <div className="space-y-4">
+                        <div className="space-y-5 p-5 bg-muted/30 rounded-xl border">
                             <div>
-                                <Label className="mb-2 block">Kategorie:</Label>
-                                <div className="grid grid-cols-3 gap-2">
+                                <Label className="text-sm font-medium mb-3 block flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-accent-violet" />
+                                    Kategorie
+                                </Label>
+                                <div className="flex flex-wrap gap-2">
                                     {categories.map((cat) => (
-                                        <div key={cat} className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id={`cat-${cat}`}
-                                                checked={selectedCategories.includes(cat)}
-                                                onCheckedChange={() => toggleCategory(cat)}
-                                            />
-                                            <Label htmlFor={`cat-${cat}`} className="cursor-pointer">
-                                                {cat}
-                                            </Label>
-                                        </div>
+                                        <button
+                                            key={cat}
+                                            onClick={() => toggleCategory(cat)}
+                                            className={cn(
+                                                "px-4 py-2 rounded-full text-sm font-medium border transition-all",
+                                                selectedCategories.includes(cat)
+                                                    ? "bg-primary text-primary-foreground border-primary shadow-md"
+                                                    : "bg-card border-border hover:border-primary/50 hover:bg-accent-violet-muted"
+                                            )}
+                                        >
+                                            {cat}
+                                        </button>
                                     ))}
                                 </div>
                             </div>
                             <div>
-                                <Label className="mb-2 block">Poziomy:</Label>
-                                <div className="flex gap-2">
+                                <Label className="text-sm font-medium mb-3 block flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-accent-fuchsia" />
+                                    Poziomy CEFR
+                                </Label>
+                                <div className="flex flex-wrap gap-2">
                                     {levels.map((level) => (
-                                        <div key={level} className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id={`level-${level}`}
-                                                checked={selectedLevels.includes(level)}
-                                                onCheckedChange={() => toggleLevel(level)}
-                                            />
-                                            <Label htmlFor={`level-${level}`} className="cursor-pointer">
-                                                {level}
-                                            </Label>
-                                        </div>
+                                        <button
+                                            key={level}
+                                            onClick={() => toggleLevel(level)}
+                                            className={cn(
+                                                "px-4 py-2 rounded-full text-sm font-bold border transition-all",
+                                                selectedLevels.includes(level)
+                                                    ? "bg-gradient-to-r from-primary to-accent-fuchsia text-white border-transparent shadow-md"
+                                                    : cn("bg-card", getLevelBadgeClasses(level))
+                                            )}
+                                        >
+                                            {level}
+                                        </button>
                                     ))}
                                 </div>
                             </div>
@@ -195,50 +277,66 @@ export default function PrintWordsClient() {
 
                     {/* Datepicker dla trybu "period" */}
                     {filterType === 'period' && (
-                        <div className="space-y-4">
-                            <div>
-                                <Label htmlFor="dateFrom">Data od:</Label>
-                                <Input
-                                    id="dateFrom"
-                                    type="date"
-                                    value={dateFrom}
-                                    onChange={(e) => setDateFrom(e.target.value)}
-                                    className="mt-1"
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="dateTo">Data do:</Label>
-                                <Input
-                                    id="dateTo"
-                                    type="date"
-                                    value={dateTo}
-                                    onChange={(e) => setDateTo(e.target.value)}
-                                    className="mt-1"
-                                />
+                        <div className="p-5 bg-muted/30 rounded-xl border">
+                            <div className="grid sm:grid-cols-2 gap-4">
+                                <div>
+                                    <Label htmlFor="dateFrom" className="text-sm font-medium mb-2 block">Od daty</Label>
+                                    <Input
+                                        id="dateFrom"
+                                        type="date"
+                                        value={dateFrom}
+                                        onChange={(e) => setDateFrom(e.target.value)}
+                                        className="h-11"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="dateTo" className="text-sm font-medium mb-2 block">Do daty</Label>
+                                    <Input
+                                        id="dateTo"
+                                        type="date"
+                                        value={dateTo}
+                                        onChange={(e) => setDateTo(e.target.value)}
+                                        className="h-11"
+                                    />
+                                </div>
                             </div>
                         </div>
                     )}
 
                     {/* Wybór konkretnych słówek */}
                     {filterType === 'custom' && (
-                        <div className="space-y-2">
-                            <Label>Wybierz słówka:</Label>
+                        <div className="p-5 bg-muted/30 rounded-xl border">
+                            <Label className="text-sm font-medium mb-3 block">
+                                Wybierz słówka ({selectedWordIds.length} zaznaczonych)
+                            </Label>
                             {loadingWords ? (
-                                <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="h-6 w-6 animate-spin" />
+                                <div className="flex items-center justify-center py-12">
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                 </div>
                             ) : (
-                                <div className="max-h-64 overflow-y-auto border rounded p-4 space-y-2">
+                                <div className="max-h-72 overflow-y-auto rounded-lg border bg-card p-1 space-y-1">
                                     {allWords.map((word) => (
-                                        <div key={word.id} className="flex items-center space-x-2">
+                                        <div
+                                            key={word.id}
+                                            onClick={() => toggleWord(word.id)}
+                                            className={cn(
+                                                "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors",
+                                                selectedWordIds.includes(word.id)
+                                                    ? "bg-accent-violet-muted"
+                                                    : "hover:bg-muted"
+                                            )}
+                                        >
                                             <Checkbox
-                                                id={`word-${word.id}`}
                                                 checked={selectedWordIds.includes(word.id)}
                                                 onCheckedChange={() => toggleWord(word.id)}
                                             />
-                                            <Label htmlFor={`word-${word.id}`} className="cursor-pointer">
-                                                {word.english} - {word.polish} ({word.level}, {word.category})
-                                            </Label>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-medium truncate">{word.english}</div>
+                                                <div className="text-sm text-muted-foreground truncate">{word.polish}</div>
+                                            </div>
+                                            <Badge variant="outline" className={cn("shrink-0", getLevelBadgeClasses(word.level))}>
+                                                {word.level}
+                                            </Badge>
                                         </div>
                                     ))}
                                 </div>
@@ -246,24 +344,30 @@ export default function PrintWordsClient() {
                         </div>
                     )}
 
-                    <div className="flex gap-3">
-                        <Button onClick={handleGenerate} disabled={loading}>
+                    {/* Przyciski akcji */}
+                    <div className="flex flex-wrap gap-3 pt-2">
+                        <Button 
+                            onClick={handleGenerate} 
+                            disabled={loading}
+                            size="lg"
+                            className="bg-gradient-to-r from-primary to-accent-fuchsia hover:opacity-90 text-primary-foreground shadow-lg shadow-primary/25"
+                        >
                             {loading ? (
                                 <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                                     Generowanie...
                                 </>
                             ) : (
                                 <>
-                                    <Download className="mr-2 h-4 w-4" />
+                                    <Download className="mr-2 h-5 w-5" />
                                     Generuj listę
                                 </>
                             )}
                         </Button>
                         {words.length > 0 && (
-                            <Button onClick={handlePrint} variant="outline">
-                                <Printer className="mr-2 h-4 w-4" />
-                                Drukuj
+                            <Button onClick={handlePrint} variant="outline" size="lg">
+                                <Printer className="mr-2 h-5 w-5" />
+                                Drukuj ({words.length})
                             </Button>
                         )}
                     </div>
@@ -283,49 +387,51 @@ export default function PrintWordsClient() {
                         </p>
                     </div>
 
-                    <Card className="print:shadow-none print:border-0">
-                        <CardHeader className="print:hidden">
-                            <CardTitle>
-                                Podgląd listy ({words.length} słówek)
-                            </CardTitle>
+                    <Card className="print:shadow-none print:border-0 border-2 !py-0">
+                        <CardHeader className="flex flex-row items-center gap-3 print:hidden bg-gradient-to-r from-success-muted to-accent-emerald-muted border-b py-4">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-success to-accent-emerald flex items-center justify-center text-white shadow-lg shrink-0">
+                                <FileText className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <CardTitle className="text-xl">Podgląd listy</CardTitle>
+                                <CardDescription>{words.length} słówek gotowych do druku</CardDescription>
+                            </div>
                         </CardHeader>
-                        <CardContent>
-                            <div className="print-table">
-                                <table className="w-full border-collapse">
+                        <CardContent className="p-0">
+                            <div className="print-table overflow-x-auto">
+                                <table className="w-full">
                                     <thead>
-                                        <tr className="border-b-2 border-gray-300">
-                                            <th className="text-left py-2 px-3 w-12">Lp.</th>
-                                            <th className="text-left py-2 px-3">Angielski</th>
-                                            <th className="text-left py-2 px-3">Polski</th>
-                                            <th className="text-left py-2 px-3 w-20">Poziom</th>
-                                            <th className="text-left py-2 px-3">Kategoria</th>
+                                        <tr className="border-b-2 bg-muted/50">
+                                            <th className="text-left py-3 px-4 font-semibold w-12">#</th>
+                                            <th className="text-left py-3 px-4 font-semibold">Angielski</th>
+                                            <th className="text-left py-3 px-4 font-semibold">Polski</th>
+                                            <th className="text-left py-3 px-4 font-semibold w-24">Poziom</th>
+                                            <th className="text-left py-3 px-4 font-semibold">Kategoria</th>
                                             {(filterType === 'learning' || filterType === 'difficult') && (
-                                                <th className="text-left py-2 px-3 w-24 print:hidden">Trudność</th>
+                                                <th className="text-left py-3 px-4 font-semibold w-24 print:hidden">Trudność</th>
                                             )}
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {words.map((word, index) => (
-                                            <tr key={word.id} className="border-b border-gray-200 hover:bg-gray-50">
-                                                <td className="py-2 px-3">{index + 1}</td>
-                                                <td className="py-2 px-3 font-medium">{word.english}</td>
-                                                <td className="py-2 px-3">{word.polish}</td>
-                                                <td className="py-2 px-3">
-                                                    <span className="inline-block px-2 py-1 text-xs rounded bg-blue-100 text-blue-800">
+                                            <tr key={word.id} className="border-b hover:bg-muted/30 transition-colors">
+                                                <td className="py-3 px-4 text-muted-foreground">{index + 1}</td>
+                                                <td className="py-3 px-4 font-semibold">{word.english}</td>
+                                                <td className="py-3 px-4">{word.polish}</td>
+                                                <td className="py-3 px-4">
+                                                    <Badge variant="outline" className={getLevelBadgeClasses(word.level)}>
                                                         {word.level}
-                                                    </span>
+                                                    </Badge>
                                                 </td>
-                                                <td className="py-2 px-3 text-sm">{word.category}</td>
+                                                <td className="py-3 px-4 text-sm text-muted-foreground">{word.category}</td>
                                                 {(filterType === 'learning' || filterType === 'difficult') && word.progress && (
-                                                    <td className="py-2 px-3 print:hidden">
-                                                        <span className={`inline-block px-2 py-1 text-xs rounded ${word.progress.difficultyRating >= 4
-                                                            ? 'bg-red-100 text-red-800'
-                                                            : word.progress.difficultyRating >= 3
-                                                                ? 'bg-orange-100 text-orange-800'
-                                                                : 'bg-green-100 text-green-800'
-                                                            }`}>
+                                                    <td className="py-3 px-4 print:hidden">
+                                                        <Badge variant={
+                                                            word.progress.difficultyRating >= 4 ? "destructive" :
+                                                            word.progress.difficultyRating >= 3 ? "secondary" : "default"
+                                                        }>
                                                             {word.progress.difficultyRating}/5
-                                                        </span>
+                                                        </Badge>
                                                     </td>
                                                 )}
                                             </tr>
@@ -339,11 +445,19 @@ export default function PrintWordsClient() {
             )}
 
             {words.length === 0 && !loading && (
-                <Card>
-                    <CardContent className="py-12">
-                        <p className="text-center text-muted-foreground">
-                            Wybierz kryteria i kliknij &quot;Generuj listę&quot; aby zobaczyć słówka
-                        </p>
+                <Card className="border-dashed border-2">
+                    <CardContent className="py-16">
+                        <div className="text-center space-y-4">
+                            <div className="w-16 h-16 mx-auto rounded-2xl bg-muted flex items-center justify-center">
+                                <FileText className="w-8 h-8 text-muted-foreground" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-lg">Brak wygenerowanych słówek</h3>
+                                <p className="text-muted-foreground">
+                                    Wybierz kryteria filtrowania i kliknij &quot;Generuj listę&quot;
+                                </p>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             )}

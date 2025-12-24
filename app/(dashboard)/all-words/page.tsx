@@ -10,6 +10,7 @@ import { WordsTableInfinite } from './words-table-infinite';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { PageLayout } from '@/components/page-layout';
 
 interface AllWordsPageProps {
     searchParams: Promise<{
@@ -93,24 +94,16 @@ export default async function AllWordsPage(props: AllWordsPageProps) {
     const totalCount = Number(totalCountResult[0].count);
 
     return (
-        <div className="p-8 space-y-8">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Baza Słówek</h2>
-                    <p className="text-muted-foreground">
-                        Przeglądaj wszystkie dostępne słówka w bazie.
-                        <span className="ml-2 inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
-                            {totalCount} {totalCount === 1 ? 'słówko' : totalCount < 5 ? 'słówka' : 'słówek'}
-                        </span>
-                    </p>
-                </div>
-            </div>
+        <PageLayout
+            title="Baza Słówek"
+            description={`Przeglądaj wszystkie dostępne słówka w bazie. ${totalCount} ${totalCount === 1 ? 'słówko' : totalCount < 5 ? 'słówka' : 'słówek'}`}
+        >
 
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="w-full max-w-sm">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="flex-1 min-w-0">
                     <Search placeholder="Szukaj słówka..." />
                 </div>
-                <div className="flex flex-wrap items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4 shrink-0">
                     <WordsFilter categories={categories} levels={levels} />
                     <InfiniteScrollControls />
                 </div>
@@ -153,6 +146,6 @@ export default async function AllWordsPage(props: AllWordsPageProps) {
                     </Link>
                 </div>
             )}
-        </div>
+        </PageLayout>
     );
 }

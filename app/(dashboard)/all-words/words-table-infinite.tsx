@@ -146,7 +146,7 @@ export function WordsTableInfinite({
 
     return (
         <>
-            <div className="rounded-md border bg-white dark:bg-black">
+            <div className="rounded-md border bg-white dark:bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow>

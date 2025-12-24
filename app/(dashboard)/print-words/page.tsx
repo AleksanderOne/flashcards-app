@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import PrintWordsClient from './_components/print-words-client';
+import { PageLayout } from '@/components/page-layout';
 
 export const metadata = {
     title: 'Drukuj Słówka | Flashcards',
@@ -8,17 +9,13 @@ export const metadata = {
 
 export default function PrintWordsPage() {
     return (
-        <div className="container mx-auto p-6">
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold">Drukuj Słówka</h1>
-                <p className="text-muted-foreground mt-2">
-                    Wybierz kryteria i wygeneruj listę słówek do wydrukowania
-                </p>
-            </div>
-
+        <PageLayout
+            title="Drukuj Słówka"
+            description="Wybierz kryteria i wygeneruj listę słówek do wydrukowania"
+        >
             <Suspense fallback={<div>Ładowanie...</div>}>
                 <PrintWordsClient />
             </Suspense>
-        </div>
+        </PageLayout>
     );
 }
