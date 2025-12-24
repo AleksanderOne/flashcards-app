@@ -14,6 +14,7 @@ import {
     wordIdSchema,
     type WordDataInput
 } from '@/lib/validations/word';
+import { checkActionRateLimit } from '@/lib/rate-limit-action';
 
 /**
  * Escapuje znaki specjalne w LIKE pattern (%, _, \) dla bezpieczeństwa.
@@ -95,9 +96,16 @@ export async function submitWordForApproval(rawData: unknown) {
  * Masowe dodawanie wielu słówek jednocześnie.
  * Implementacja zoptymalizowana w celu uniknięcia problemu N+1 zapytań.
  * Dane wejściowe są walidowane przez schemat Zod.
+ * Chronione przez rate limiting.
  */
 export async function submitMultipleWordsForApproval(rawData: unknown) {
     try {
+        // Rate limiting - ochrona przed nadużyciem masowego importu
+        const rateLimit = await checkActionRateLimit();
+        if (!rateLimit.allowed) {
+            return { success: false, error: rateLimit.error };
+        }
+
         // Walidacja danych wejściowych (tablica słówek)
         const validationResult = wordDataArraySchema.safeParse(rawData);
         if (!validationResult.success) {

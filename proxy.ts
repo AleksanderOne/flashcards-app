@@ -1,10 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkAuthRateLimit, checkApiRateLimit } from '@/lib/rate-limit';
 
 /**
- * Proxy dla Edge Runtime - ochrona tras
+ * Proxy dla Edge Runtime - ochrona tras i rate limiting
  * 
  * Sprawdza sesję SSO z ciasteczka i przekierowuje niezalogowanych użytkowników.
+ * Implementuje rate limiting dla API endpoints.
  */
+
+/**
+ * Pobiera identyfikator użytkownika z requestu (IP)
+ */
+function getIdentifier(request: NextRequest): string {
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    const realIp = request.headers.get('x-real-ip');
+    const cfConnectingIp = request.headers.get('cf-connecting-ip');
+
+    const ip = forwardedFor?.split(',')[0]?.trim()
+        || realIp
+        || cfConnectingIp
+        || 'anonymous';
+
+    return ip;
+}
+
+/**
+ * Tworzy odpowiedź 429 Too Many Requests
+ */
+function rateLimitResponse(
+    limit: number,
+    remaining: number,
+    reset: number
+): NextResponse {
+    return NextResponse.json(
+        {
+            error: 'Too Many Requests',
+            message: 'Przekroczono limit zapytań. Spróbuj ponownie później.',
+            retryAfter: Math.ceil((reset - Date.now()) / 1000),
+        },
+        {
+            status: 429,
+            headers: {
+                'X-RateLimit-Limit': limit.toString(),
+                'X-RateLimit-Remaining': remaining.toString(),
+                'X-RateLimit-Reset': reset.toString(),
+                'Retry-After': Math.ceil((reset - Date.now()) / 1000).toString(),
+            },
+        }
+    );
+}
 
 /**
  * Sprawdza czy użytkownik ma aktywną sesję SSO
@@ -29,9 +73,35 @@ function hasSSOSession(request: NextRequest): boolean {
 /**
  * Główna funkcja proxy (middleware)
  */
-export function proxy(request: NextRequest) {
-    const isLoggedIn = hasSSOSession(request);
+export async function proxy(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
+    const identifier = getIdentifier(request);
+
+    // ========== RATE LIMITING DLA API ==========
+
+    // Rate limiting dla auth endpoints (najbardziej restrykcyjny)
+    if (pathname.startsWith('/api/auth')) {
+        const result = await checkAuthRateLimit(identifier);
+
+        if (!result.success) {
+            console.warn(`[Rate Limit] Auth blocked: ${identifier} on ${pathname}`);
+            return rateLimitResponse(result.limit, result.remaining, result.reset);
+        }
+    }
+
+    // Rate limiting dla pozostałych API endpoints
+    if (pathname.startsWith('/api/') && !pathname.startsWith('/api/auth')) {
+        const result = await checkApiRateLimit(identifier);
+
+        if (!result.success) {
+            console.warn(`[Rate Limit] API blocked: ${identifier} on ${pathname}`);
+            return rateLimitResponse(result.limit, result.remaining, result.reset);
+        }
+    }
+
+    // ========== OCHRONA TRAS (SSO) ==========
+
+    const isLoggedIn = hasSSOSession(request);
 
     // Chronione ścieżki - wymagają zalogowania
     const protectedPaths = [
@@ -64,11 +134,20 @@ export function proxy(request: NextRequest) {
         return NextResponse.redirect(loginUrl);
     }
 
-    return NextResponse.next();
+    // ========== SECURITY HEADERS ==========
+
+    const response = NextResponse.next();
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+    return response;
 }
 
 export const config = {
     matcher: [
+        // API routes (rate limiting)
+        '/api/:path*',
         // Chronione trasy
         '/learn/:path*',
         '/challenge/:path*',
@@ -83,3 +162,4 @@ export const config = {
         '/login',
     ],
 };
+
