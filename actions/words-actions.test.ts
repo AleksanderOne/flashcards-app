@@ -120,6 +120,10 @@ describe('Words Actions (Server Actions)', () => {
     });
 
     describe('approveWord (Admin)', () => {
+        // Prawidłowy UUID dla testów (walidacja Zod wymaga UUID)
+        const validWordId = '550e8400-e29b-41d4-a716-446655440000';
+        const invalidWordId = 'not-a-valid-uuid';
+
         it('powinien zablokować dostęp dla nie-admina', async () => {
             (auth as any).mockResolvedValue({ user: { id: 'user1', role: 'user' } }); // Role in session is user
 
@@ -127,7 +131,7 @@ describe('Words Actions (Server Actions)', () => {
             const dbChain = createDbChain([{ role: 'user' }]);
             (db.select as any).mockReturnValue(dbChain);
 
-            const result = await actions.approveWord('some-id');
+            const result = await actions.approveWord(validWordId);
             expect(result.success).toBe(false);
             expect(result.error).toBe('Brak uprawnień');
         });
@@ -138,10 +142,19 @@ describe('Words Actions (Server Actions)', () => {
             const updateChain = createDbChain(undefined);
             (db.update as any).mockReturnValue(updateChain);
 
-            const result = await actions.approveWord('word-id-123');
+            const result = await actions.approveWord(validWordId);
 
             expect(result.success).toBe(true);
             expect(db.update).toHaveBeenCalled();
+        });
+
+        it('powinien zwrócić błąd dla nieprawidłowego UUID', async () => {
+            (auth as any).mockResolvedValue({ user: { id: 'admin1', role: 'admin' } });
+
+            const result = await actions.approveWord(invalidWordId);
+
+            expect(result.success).toBe(false);
+            expect(result.error).toBe('Nieprawidłowy identyfikator słówka');
         });
     });
 });
