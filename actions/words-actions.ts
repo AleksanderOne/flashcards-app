@@ -4,9 +4,16 @@
 import { db } from '@/lib/db/drizzle';
 import { words, customWords, users } from '@/lib/db/schema';
 import { auth } from '@/lib/auth';
-import { eq, and, or, like, sql, inArray, ilike, desc } from 'drizzle-orm';
+import { eq, and, or, sql, inArray, ilike, desc } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { LevelType, LEVELS } from '@/lib/constants';
+import {
+    wordDataSchema,
+    wordDataArraySchema,
+    wordUpdateSchema,
+    wordIdSchema,
+    type WordDataInput
+} from '@/lib/validations/word';
 
 /**
  * Escapuje znaki specjalne w LIKE pattern (%, _, \) dla bezpieczeństwa.
@@ -19,22 +26,25 @@ function escapeLikePattern(pattern: string): string {
         .replace(/_/g, '\\_');
 }
 
-// Współdzielone definicje typów
-export interface WordData {
-    english: string;
-    polish: string;
-    level: LevelType;
-    category: string;
-    imageUrl?: string | null;
-}
+// Współdzielone definicje typów - używamy typu z walidacji
+export type WordData = WordDataInput;
 
 // ========== AKCJE DLA UŻYTKOWNIKÓW ==========
 
 /**
  * Dodaje nowe słówko zgłoszone przez użytkownika do kolejki akceptacji.
+ * Dane wejściowe są walidowane przez schemat Zod.
  */
-export async function submitWordForApproval(wordData: WordData) {
+export async function submitWordForApproval(rawData: unknown) {
     try {
+        // Walidacja danych wejściowych
+        const validationResult = wordDataSchema.safeParse(rawData);
+        if (!validationResult.success) {
+            const firstError = validationResult.error.issues[0];
+            return { success: false, error: firstError?.message || 'Nieprawidłowe dane' };
+        }
+        const wordData = validationResult.data;
+
         const session = await auth();
         if (!session || !session.user || !session.user.id) {
             return { success: false, error: 'Musisz być zalogowany' };
@@ -58,7 +68,6 @@ export async function submitWordForApproval(wordData: WordData) {
 
         // Automatyczne zatwierdzenie jeśli użytkownik jest administratorem
         const isApproved = session.user.role === 'admin';
-
 
         await db.insert(words).values({
             ...wordData,
@@ -85,16 +94,21 @@ export async function submitWordForApproval(wordData: WordData) {
 /**
  * Masowe dodawanie wielu słówek jednocześnie.
  * Implementacja zoptymalizowana w celu uniknięcia problemu N+1 zapytań.
+ * Dane wejściowe są walidowane przez schemat Zod.
  */
-export async function submitMultipleWordsForApproval(wordsData: WordData[]) {
+export async function submitMultipleWordsForApproval(rawData: unknown) {
     try {
+        // Walidacja danych wejściowych (tablica słówek)
+        const validationResult = wordDataArraySchema.safeParse(rawData);
+        if (!validationResult.success) {
+            const firstError = validationResult.error.issues[0];
+            return { success: false, error: firstError?.message || 'Nieprawidłowe dane' };
+        }
+        const wordsData = validationResult.data;
+
         const session = await auth();
         if (!session || !session.user || !session.user.id) {
             return { success: false, error: 'Musisz być zalogowany' };
-        }
-
-        if (wordsData.length === 0) {
-            return { success: false, error: 'Lista słówek jest pusta.' };
         }
 
         // Pobranie wszystkich potencjalnych duplikatów (gdzie "english" pokrywa się z nowymi słówkami)
@@ -287,8 +301,15 @@ export async function getPendingWords() {
     }
 }
 
-export async function approveWord(wordId: string) {
+export async function approveWord(rawWordId: unknown) {
     try {
+        // Walidacja ID słówka
+        const validationResult = wordIdSchema.safeParse(rawWordId);
+        if (!validationResult.success) {
+            return { success: false, error: 'Nieprawidłowy identyfikator słówka' };
+        }
+        const wordId = validationResult.data;
+
         const { isAdmin } = await checkIsAdmin();
         if (!isAdmin) return { success: false, error: 'Brak uprawnień' };
 
@@ -307,8 +328,15 @@ export async function approveWord(wordId: string) {
     }
 }
 
-export async function rejectWord(wordId: string) {
+export async function rejectWord(rawWordId: unknown) {
     try {
+        // Walidacja ID słówka
+        const validationResult = wordIdSchema.safeParse(rawWordId);
+        if (!validationResult.success) {
+            return { success: false, error: 'Nieprawidłowy identyfikator słówka' };
+        }
+        const wordId = validationResult.data;
+
         const { isAdmin } = await checkIsAdmin();
         if (!isAdmin) return { success: false, error: 'Brak uprawnień' };
 
@@ -321,8 +349,23 @@ export async function rejectWord(wordId: string) {
     }
 }
 
-export async function updateWord(wordId: string, wordData: Partial<WordData>) {
+export async function updateWord(rawWordId: unknown, rawWordData: unknown) {
     try {
+        // Walidacja ID słówka
+        const idValidation = wordIdSchema.safeParse(rawWordId);
+        if (!idValidation.success) {
+            return { success: false, error: 'Nieprawidłowy identyfikator słówka' };
+        }
+        const wordId = idValidation.data;
+
+        // Walidacja danych aktualizacji (częściowa)
+        const dataValidation = wordUpdateSchema.safeParse(rawWordData);
+        if (!dataValidation.success) {
+            const firstError = dataValidation.error.issues[0];
+            return { success: false, error: firstError?.message || 'Nieprawidłowe dane' };
+        }
+        const wordData = dataValidation.data;
+
         const { isAdmin } = await checkIsAdmin();
         if (!isAdmin) return { success: false, error: 'Brak uprawnień' };
 
@@ -340,8 +383,15 @@ export async function updateWord(wordId: string, wordData: Partial<WordData>) {
     }
 }
 
-export async function deleteWord(wordId: string) {
+export async function deleteWord(rawWordId: unknown) {
     try {
+        // Walidacja ID słówka
+        const validationResult = wordIdSchema.safeParse(rawWordId);
+        if (!validationResult.success) {
+            return { success: false, error: 'Nieprawidłowy identyfikator słówka' };
+        }
+        const wordId = validationResult.data;
+
         const { isAdmin } = await checkIsAdmin();
         if (!isAdmin) return { success: false, error: 'Brak uprawnień' };
 

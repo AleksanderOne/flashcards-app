@@ -5,6 +5,7 @@ import { db } from '@/lib/db/drizzle';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { updateNameSchema } from '@/lib/validations/user';
 
 // Typ dla ujednoliconego zwracania wyników akcji
 export type ActionResult<T = void> =
@@ -12,19 +13,24 @@ export type ActionResult<T = void> =
     | { success: false; error: string };
 
 /**
- * Aktualizuje nazwę użytkownika
+ * Aktualizuje nazwę użytkownika.
+ * Dane wejściowe są walidowane przez schemat Zod.
  */
-export async function updateUserName(name: string): Promise<ActionResult> {
+export async function updateUserName(rawName: unknown): Promise<ActionResult> {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Nie jesteś zalogowany' };
 
-    if (!name || name.trim().length === 0) {
-        return { success: false, error: 'Nazwa nie może być pusta' };
+    // Walidacja danych wejściowych
+    const validationResult = updateNameSchema.safeParse({ name: rawName });
+    if (!validationResult.success) {
+        const firstError = validationResult.error.issues[0];
+        return { success: false, error: firstError?.message || 'Nieprawidłowa nazwa' };
     }
+    const { name } = validationResult.data;
 
     try {
         await db.update(users)
-            .set({ name: name.trim() })
+            .set({ name })
             .where(eq(users.id, session.user.id));
 
         revalidatePath('/settings');

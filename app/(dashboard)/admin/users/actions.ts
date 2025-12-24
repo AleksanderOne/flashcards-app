@@ -11,6 +11,8 @@ import {
     deleteUserHistory as deleteUserHistoryAction,
     resetUserProgress as resetUserProgressAction
 } from '@/app/actions/user-data-actions';
+import { createUserSchema, userIdSchema, userRoleSchema } from '@/lib/validations/user';
+import { z } from 'zod';
 
 /**
  * Sprawdza czy aktualny użytkownik jest adminem
@@ -29,9 +31,23 @@ async function checkAdmin() {
 }
 
 /**
- * Blokuje/odblokowuje użytkownika
+ * Blokuje/odblokowuje użytkownika.
+ * Dane wejściowe są walidowane przez schemat Zod.
  */
-export async function toggleBlockUser(userId: string, currentStatus: boolean) {
+export async function toggleBlockUser(rawUserId: unknown, rawCurrentStatus: unknown) {
+    // Walidacja danych wejściowych
+    const userIdResult = userIdSchema.safeParse(rawUserId);
+    if (!userIdResult.success) {
+        throw new Error('Nieprawidłowy identyfikator użytkownika');
+    }
+    const userId = userIdResult.data;
+
+    const statusResult = z.boolean().safeParse(rawCurrentStatus);
+    if (!statusResult.success) {
+        throw new Error('Nieprawidłowy status blokady');
+    }
+    const currentStatus = statusResult.data;
+
     await checkAdmin();
     await db.update(users)
         .set({ isBlocked: !currentStatus })
@@ -40,9 +56,23 @@ export async function toggleBlockUser(userId: string, currentStatus: boolean) {
 }
 
 /**
- * Zmienia rolę użytkownika (user <-> admin)
+ * Zmienia rolę użytkownika (user <-> admin).
+ * Dane wejściowe są walidowane przez schemat Zod.
  */
-export async function toggleUserRole(userId: string, currentRole: 'user' | 'admin') {
+export async function toggleUserRole(rawUserId: unknown, rawCurrentRole: unknown) {
+    // Walidacja danych wejściowych
+    const userIdResult = userIdSchema.safeParse(rawUserId);
+    if (!userIdResult.success) {
+        throw new Error('Nieprawidłowy identyfikator użytkownika');
+    }
+    const userId = userIdResult.data;
+
+    const roleResult = userRoleSchema.safeParse(rawCurrentRole);
+    if (!roleResult.success) {
+        throw new Error('Nieprawidłowa rola użytkownika');
+    }
+    const currentRole = roleResult.data;
+
     await checkAdmin();
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
     await db.update(users)
@@ -52,27 +82,44 @@ export async function toggleUserRole(userId: string, currentRole: 'user' | 'admi
 }
 
 /**
- * Usuwa użytkownika z bazy danych
+ * Usuwa użytkownika z bazy danych.
+ * Dane wejściowe są walidowane przez schemat Zod.
  */
-export async function deleteUser(userId: string) {
+export async function deleteUser(rawUserId: unknown) {
+    // Walidacja danych wejściowych
+    const userIdResult = userIdSchema.safeParse(rawUserId);
+    if (!userIdResult.success) {
+        throw new Error('Nieprawidłowy identyfikator użytkownika');
+    }
+    const userId = userIdResult.data;
+
     await checkAdmin();
     await db.delete(users).where(eq(users.id, userId));
     revalidatePath('/admin/users');
 }
 
 /**
- * Tworzy nowego użytkownika w lokalnej bazie
+ * Tworzy nowego użytkownika w lokalnej bazie.
+ * Dane wejściowe są walidowane przez schemat Zod.
  * 
  * UWAGA: Użytkownik utworzony tą metodą będzie mógł się zalogować
  * tylko jeśli posiada konto w centrum logowania z tym samym emailem.
  * Hasła nie są przechowywane - logowanie tylko przez SSO.
  */
-export async function createUser(data: { name: string; email: string; role: 'user' | 'admin' }) {
+export async function createUser(rawData: unknown) {
+    // Walidacja danych wejściowych
+    const validationResult = createUserSchema.safeParse(rawData);
+    if (!validationResult.success) {
+        const firstError = validationResult.error.issues[0];
+        throw new Error(firstError?.message || 'Nieprawidłowe dane użytkownika');
+    }
+    const data = validationResult.data;
+
     await checkAdmin();
 
     // Sprawdzenie czy użytkownik już istnieje
     const existing = await db.query.users.findFirst({
-        where: eq(users.email, data.email.toLowerCase())
+        where: eq(users.email, data.email)
     });
 
     if (existing) {
@@ -82,7 +129,7 @@ export async function createUser(data: { name: string; email: string; role: 'use
     await db.insert(users).values({
         id: randomUUID(),
         name: data.name,
-        email: data.email.toLowerCase(),
+        email: data.email,
         // Brak hasła - logowanie tylko przez SSO centrum
         role: data.role,
         isBlocked: false,
@@ -93,20 +140,39 @@ export async function createUser(data: { name: string; email: string; role: 'use
 }
 
 // Funkcje do zarządzania danymi użytkownika (dla admina)
-export async function deleteUserData(userId: string) {
+export async function deleteUserData(rawUserId: unknown) {
+    const userIdResult = userIdSchema.safeParse(rawUserId);
+    if (!userIdResult.success) {
+        throw new Error('Nieprawidłowy identyfikator użytkownika');
+    }
+    const userId = userIdResult.data;
+
     await checkAdmin();
     return deleteUserDataAction(userId);
 }
 
-export async function deleteUserHistory(userId: string) {
+export async function deleteUserHistory(rawUserId: unknown) {
+    const userIdResult = userIdSchema.safeParse(rawUserId);
+    if (!userIdResult.success) {
+        throw new Error('Nieprawidłowy identyfikator użytkownika');
+    }
+    const userId = userIdResult.data;
+
     await checkAdmin();
     return deleteUserHistoryAction(userId);
 }
 
-export async function resetUserProgress(userId: string) {
+export async function resetUserProgress(rawUserId: unknown) {
+    const userIdResult = userIdSchema.safeParse(rawUserId);
+    if (!userIdResult.success) {
+        throw new Error('Nieprawidłowy identyfikator użytkownika');
+    }
+    const userId = userIdResult.data;
+
     await checkAdmin();
     return resetUserProgressAction(userId);
 }
 
 // UWAGA: Funkcja resetUserPassword została usunięta
 // Logowanie odbywa się przez SSO centrum logowania - zmiana hasła musi być wykonana w centrum
+
