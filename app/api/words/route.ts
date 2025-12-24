@@ -3,6 +3,7 @@ import { words, users } from '@/lib/db/schema';
 import { ilike, or, and, eq, desc } from 'drizzle-orm';
 import { NextRequest, NextResponse } from 'next/server';
 import { LevelType, LEVELS } from '@/lib/constants';
+import { auth } from '@/lib/auth';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -17,8 +18,21 @@ function escapeLikePattern(pattern: string): string {
         .replace(/_/g, '\\_');
 }
 
+/**
+ * Pobiera listę zatwierdzonych słówek z paginacją.
+ * Wymaga zalogowania - tylko autoryzowani użytkownicy mają dostęp.
+ */
 export async function GET(request: NextRequest) {
     try {
+        // Sprawdzenie autoryzacji - wymagana aktywna sesja
+        const session = await auth();
+        if (!session?.user?.id) {
+            return NextResponse.json(
+                { error: 'Unauthorized', message: 'Wymagane zalogowanie' },
+                { status: 401 }
+            );
+        }
+
         const searchParams = request.nextUrl.searchParams;
         const query = searchParams.get('query') || '';
         const category = searchParams.get('category') || 'all';
