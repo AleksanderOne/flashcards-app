@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { FixCategoriesCard } from '../_components/fix-categories-card';
 import { WordsManagementCard } from './_components/words-management-card';
+import { PageLayout } from '@/components/page-layout';
+import { AdminNav } from '../_components/admin-nav';
 
 export default async function AdminWordsPage() {
     const session = await auth();
@@ -12,14 +14,11 @@ export default async function AdminWordsPage() {
     }
 
     return (
-        <div className="container mx-auto p-6 space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold">Zarządzanie Słówkami</h1>
-                <p className="text-muted-foreground mt-2">
-                    Narzędzia administracyjne do zarządzania bazą słówek
-                </p>
-            </div>
-
+        <PageLayout
+            title="Zarządzanie Słówkami"
+            description="Narzędzia administracyjne do zarządzania bazą słówek"
+            actions={<AdminNav />}
+        >
             <div className="grid gap-6">
                 <Suspense fallback={<div className="h-96 animate-pulse rounded-lg bg-muted" />}>
                     <WordsManagementCard />
@@ -27,6 +26,6 @@ export default async function AdminWordsPage() {
 
                 <FixCategoriesCard />
             </div>
-        </div>
+        </PageLayout>
     );
 }

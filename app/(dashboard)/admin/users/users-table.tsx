@@ -104,13 +104,13 @@ export function UsersTable({ users }: { users: User[] }) {
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold tracking-tight">Użytkownicy</h2>
+                <h3 className="text-lg font-semibold">Lista użytkowników ({users.length})</h3>
                 <Button onClick={() => setIsCreateOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" /> Dodaj użytkownika
                 </Button>
             </div>
 
-            <div className="rounded-md border bg-white dark:bg-black">
+            <div className="rounded-md border bg-white dark:bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -146,7 +146,7 @@ export function UsersTable({ users }: { users: User[] }) {
                                                 <MoreHorizontal className="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
+                                        <DropdownMenuContent align="end" className="w-56">
                                             <DropdownMenuLabel>Akcje</DropdownMenuLabel>
                                             <DropdownMenuItem onClick={() => handleAction(() => toggleUserRole(user.id, user.role))}>
                                                 {user.role === 'admin' ? (

@@ -44,7 +44,7 @@ export function FixCategoriesCard() {
     };
 
     return (
-        <Card>
+        <Card className="max-w-md">
             <CardHeader>
                 <CardTitle>Naprawa Kategorii Słówek</CardTitle>
                 <CardDescription>

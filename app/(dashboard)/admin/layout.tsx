@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
-import { AdminNav } from './_components/admin-nav';
 
 export default async function AdminLayout({
     children,
@@ -13,12 +12,5 @@ export default async function AdminLayout({
         redirect('/');
     }
 
-    return (
-        <div className="flex flex-col h-full">
-            <AdminNav />
-            <div className="flex-1">
-                {children}
-            </div>
-        </div>
-    );
+    return <>{children}</>;
 }
