@@ -31,9 +31,9 @@ export default async function HomePage() {
                         <Link href="/login">
                             <Button variant="ghost">Zaloguj się</Button>
                         </Link>
-                        <Link href="/register">
+                        <Link href="/login">
                             <Button className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white">
-                                Rozpocznij za darmo
+                                Rozpocznij naukę
                             </Button>
                         </Link>
                     </div>
@@ -62,7 +62,7 @@ export default async function HomePage() {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link href="/register">
+                        <Link href="/login">
                             <Button size="lg" className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white h-12 px-8 text-lg shadow-lg shadow-violet-500/30 dark:shadow-violet-900/30">
                                 Zacznij naukę →
                             </Button>

@@ -18,7 +18,7 @@ Profesjonalna platforma edukacyjna do nauki języka angielskiego, wykorzystując
 - **Osiągnięcia**: System odznak nagradzający regularność i wyniki.
 
 ### 🛡️ Bezpieczeństwo i Technologia
-- **Autentykacja**: Bezpieczne logowanie przez Email/Hasło lub Google OAuth.
+- **Autentykacja**: Bezpieczne logowanie przez SSO (Centrum Logowania) z Google OAuth.
 - **Wydajność**: Zoptymalizowana baza danych i caching po stronie serwera.
 - **Responsywność**: Pełne wsparcie dla urządzeń mobilnych i desktopowych (PWA ready).
 - **Dostępność**: Tryb jasny i ciemny (Dark Mode).
@@ -33,7 +33,7 @@ Projekt zbudowany w oparciu o nowoczesne standardy webowe:
 - **Styling**: Tailwind CSS, shadcn/ui (Radix UI)
 - **Backend / API**: Next.js Server Actions
 - **Baza Danych**: PostgreSQL (Vercel Postgres), Drizzle ORM
-- **Autentykacja**: NextAuth.js v5
+- **Autentykacja**: SSO (Centrum Logowania)
 - **Inne**: Recharts, Zod, React Hook Form
 
 ---
@@ -60,13 +60,10 @@ Utwórz plik `.env.local` w głównym katalogu projektu i uzupełnij go według 
 # Baza Danych
 DATABASE_URL="postgres://uzytkownik:haslo@host:5432/nazwa_bazy"
 
-# NextAuth
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="wygeneruj_komenda_openssl_rand_base64_32"
-
-# Google OAuth (Opcjonalne)
-GOOGLE_CLIENT_ID="twoj_client_id"
-GOOGLE_CLIENT_SECRET="twoj_client_secret"
+# SSO (Centrum Logowania)
+SSO_CENTER_URL="https://centrum-logowania.example.com"
+SSO_CLIENT_ID="flashcards"
+SSO_API_KEY="twoj_klucz_api"
 
 # Integracje (Opcjonalne)
 PIXABAY_API_KEY="twoj_klucz_pixabay"
@@ -93,7 +90,7 @@ Aplikacja będzie dostępna pod adresem: [http://localhost:3000](http://localhos
 ## 📁 Struktura Projektu
 
 - `/app` - Główny katalog aplikacji (Next.js App Router).
-  - `(auth)` - Logika logowania i rejestracji.
+  - `(auth)` - Strona logowania (przekierowanie do SSO).
   - `(dashboard)` - Część chroniona aplikacji (nauka, statystyki, panel admina).
 - `/lib` - Biblioteki pomocnicze (konfiguracja DB, Auth, algorytmy).
   - `db/schema.ts` - Definicja schematu bazy danych.
