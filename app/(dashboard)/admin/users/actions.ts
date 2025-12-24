@@ -13,6 +13,7 @@ import {
 } from '@/app/actions/user-data-actions';
 import { createUserSchema, userIdSchema, userRoleSchema } from '@/lib/validations/user';
 import { z } from 'zod';
+import { requireAdminStrict } from '@/lib/auth-admin-strict';
 
 /**
  * Sprawdza czy aktualny użytkownik jest adminem
@@ -58,6 +59,9 @@ export async function toggleBlockUser(rawUserId: unknown, rawCurrentStatus: unkn
 /**
  * Zmienia rolę użytkownika (user <-> admin).
  * Dane wejściowe są walidowane przez schemat Zod.
+ * 
+ * KRYTYCZNA OPERACJA - używa fail-closed (requireAdminStrict)
+ * W przypadku błędu połączenia z centrum SSO - odmowa dostępu.
  */
 export async function toggleUserRole(rawUserId: unknown, rawCurrentRole: unknown) {
     // Walidacja danych wejściowych
@@ -73,7 +77,9 @@ export async function toggleUserRole(rawUserId: unknown, rawCurrentRole: unknown
     }
     const currentRole = roleResult.data;
 
-    await checkAdmin();
+    // Fail-closed: weryfikacja z centrum SSO
+    await requireAdminStrict();
+
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
     await db.update(users)
         .set({ role: newRole })
@@ -84,6 +90,9 @@ export async function toggleUserRole(rawUserId: unknown, rawCurrentRole: unknown
 /**
  * Usuwa użytkownika z bazy danych.
  * Dane wejściowe są walidowane przez schemat Zod.
+ * 
+ * KRYTYCZNA OPERACJA - używa fail-closed (requireAdminStrict)
+ * W przypadku błędu połączenia z centrum SSO - odmowa dostępu.
  */
 export async function deleteUser(rawUserId: unknown) {
     // Walidacja danych wejściowych
@@ -93,7 +102,9 @@ export async function deleteUser(rawUserId: unknown) {
     }
     const userId = userIdResult.data;
 
-    await checkAdmin();
+    // Fail-closed: weryfikacja z centrum SSO
+    await requireAdminStrict();
+
     await db.delete(users).where(eq(users.id, userId));
     revalidatePath('/admin/users');
 }
