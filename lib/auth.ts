@@ -1,4 +1,4 @@
-import { getSSOSession, clearSSOSession, verifySessionWithCenter, SSO_CONFIG } from '@/lib/sso-client';
+import { getSSOSession, verifySessionWithCenter, SSO_CONFIG } from '@/lib/sso-client';
 import { db } from '@/lib/db/drizzle';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -51,7 +51,8 @@ export async function auth(): Promise<Session | null> {
 
         if (!isValid) {
             // Sesja została unieważniona w centrum (Kill Switch)
-            await clearSSOSession();
+            // Nie możemy usunąć ciasteczka w Server Component, więc zwracamy null
+            // Użytkownik zostanie przekierowany do logowania
             return null;
         }
 
