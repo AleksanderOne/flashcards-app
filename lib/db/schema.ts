@@ -135,3 +135,25 @@ export const userStats = flashcardsSchema.table('user_stats', {
     lastActiveDate: date('last_active_date'),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+// Ustawienia aplikacji (singleton - jeden rekord)
+export const appSettings = flashcardsSchema.table('app_settings', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    contactEmail: varchar('contact_email', { length: 255 }).notNull().default('kontakt@flashcards.pl'),
+    emailNotificationsEnabled: boolean('email_notifications_enabled').default(true).notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    updatedBy: varchar('updated_by', { length: 255 }).references(() => users.id, { onDelete: 'set null' }),
+});
+
+// Wiadomości kontaktowe
+export const contactMessages = flashcardsSchema.table('contact_messages', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    firstName: varchar('first_name', { length: 100 }).notNull(),
+    lastName: varchar('last_name', { length: 100 }).notNull(),
+    email: varchar('email', { length: 255 }).notNull(),
+    phone: varchar('phone', { length: 20 }),
+    message: text('message').notNull(),
+    isRead: boolean('is_read').default(false).notNull(),
+    emailSent: boolean('email_sent').default(false).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
