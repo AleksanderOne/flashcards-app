@@ -45,118 +45,438 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  /* Kolory semantyczne - mapowanie na zmienne CSS */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-muted: var(--success-muted);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-muted: var(--warning-muted);
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  --color-error-muted: var(--error-muted);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-muted: var(--info-muted);
+
+  /* Kolory akcentowe - używane do ikon, badge'ów, etc. */
+  --color-accent-violet: var(--accent-violet);
+  --color-accent-violet-foreground: var(--accent-violet-foreground);
+  --color-accent-violet-muted: var(--accent-violet-muted);
+  --color-accent-fuchsia: var(--accent-fuchsia);
+  --color-accent-fuchsia-foreground: var(--accent-fuchsia-foreground);
+  --color-accent-fuchsia-muted: var(--accent-fuchsia-muted);
+  --color-accent-pink: var(--accent-pink);
+  --color-accent-pink-foreground: var(--accent-pink-foreground);
+  --color-accent-pink-muted: var(--accent-pink-muted);
+  --color-accent-amber: var(--accent-amber);
+  --color-accent-amber-foreground: var(--accent-amber-foreground);
+  --color-accent-amber-muted: var(--accent-amber-muted);
+  --color-accent-orange: var(--accent-orange);
+  --color-accent-orange-foreground: var(--accent-orange-foreground);
+  --color-accent-orange-muted: var(--accent-orange-muted);
+  --color-accent-sky: var(--accent-sky);
+  --color-accent-sky-foreground: var(--accent-sky-foreground);
+  --color-accent-sky-muted: var(--accent-sky-muted);
+  --color-accent-emerald: var(--accent-emerald);
+  --color-accent-emerald-foreground: var(--accent-emerald-foreground);
+  --color-accent-emerald-muted: var(--accent-emerald-muted);
+  --color-accent-yellow: var(--accent-yellow);
+  --color-accent-yellow-foreground: var(--accent-yellow-foreground);
+  --color-accent-yellow-muted: var(--accent-yellow-muted);
+  --color-accent-red: var(--accent-red);
+  --color-accent-red-foreground: var(--accent-red-foreground);
+  --color-accent-red-muted: var(--accent-red-muted);
+  --color-accent-slate: var(--accent-slate);
+  --color-accent-slate-foreground: var(--accent-slate-foreground);
+  --color-accent-slate-muted: var(--accent-slate-muted);
+
+  /* Poziomy CEFR */
+  --color-level-a1: var(--level-a1);
+  --color-level-a1-foreground: var(--level-a1-foreground);
+  --color-level-a1-muted: var(--level-a1-muted);
+  --color-level-a1-border: var(--level-a1-border);
+  --color-level-a2: var(--level-a2);
+  --color-level-a2-foreground: var(--level-a2-foreground);
+  --color-level-a2-muted: var(--level-a2-muted);
+  --color-level-a2-border: var(--level-a2-border);
+  --color-level-b1: var(--level-b1);
+  --color-level-b1-foreground: var(--level-b1-foreground);
+  --color-level-b1-muted: var(--level-b1-muted);
+  --color-level-b1-border: var(--level-b1-border);
+  --color-level-b2: var(--level-b2);
+  --color-level-b2-foreground: var(--level-b2-foreground);
+  --color-level-b2-muted: var(--level-b2-muted);
+  --color-level-b2-border: var(--level-b2-border);
+  --color-level-c1: var(--level-c1);
+  --color-level-c1-foreground: var(--level-c1-foreground);
+  --color-level-c1-muted: var(--level-c1-muted);
+  --color-level-c1-border: var(--level-c1-border);
 }
 
 :root {
-  /* Jasne, ciepłe tło dla light mode */
-  --background: oklch(0.99 0.005 85);
-  --foreground: oklch(0.2 0.02 265);
+  /* ===========================================
+     KOLORY BAZOWE - JASNY MOTYW
+     Świeży, nowoczesny wygląd z różowymi/fioletowymi akcentami
+     =========================================== */
+  
+  /* Tło i tekst główny - ciepłe, delikatne tło */
+  --background: oklch(0.985 0.006 300);
+  --foreground: oklch(0.22 0.03 280);
 
-  /* Karty z lekkim ciepłym odcieniem */
-  --card: oklch(1 0.008 85);
-  --card-foreground: oklch(0.2 0.02 265);
+  /* Karty - czysta biel z delikatnym odcieniem */
+  --card: oklch(0.995 0.004 300);
+  --card-foreground: oklch(0.22 0.03 280);
 
   /* Popover */
-  --popover: oklch(1 0.008 85);
-  --popover-foreground: oklch(0.2 0.02 265);
+  --popover: oklch(0.995 0.004 300);
+  --popover-foreground: oklch(0.22 0.03 280);
 
-  /* Primary - violet/fuchsia gradient base */
-  --primary: oklch(0.55 0.25 295);
+  /* Primary - żywy różowy/magenta (spójny z ciemnym motywem) */
+  --primary: oklch(0.58 0.24 330);
   --primary-foreground: oklch(0.99 0 0);
 
-  /* Secondary - soft lavender */
-  --secondary: oklch(0.95 0.03 295);
-  --secondary-foreground: oklch(0.3 0.15 295);
+  /* Secondary */
+  --secondary: oklch(0.96 0.025 300);
+  --secondary-foreground: oklch(0.35 0.15 330);
 
-  /* Muted - ciepły szary */
-  --muted: oklch(0.96 0.01 85);
-  --muted-foreground: oklch(0.5 0.02 265);
+  /* Muted - stonowane elementy */
+  --muted: oklch(0.96 0.012 300);
+  --muted-foreground: oklch(0.52 0.025 280);
 
-  /* Accent - bright violet */
-  --accent: oklch(0.93 0.08 295);
-  --accent-foreground: oklch(0.3 0.2 295);
+  /* Accent */
+  --accent: oklch(0.94 0.06 310);
+  --accent-foreground: oklch(0.35 0.18 330);
 
-  /* Destructive - ciepła czerwień */
-  --destructive: oklch(0.6 0.24 25);
+  /* Destructive */
+  --destructive: oklch(0.58 0.24 25);
 
-  /* Borders - delikatne */
-  --border: oklch(0.9 0.01 265);
-  --input: oklch(0.92 0.01 265);
-  --ring: oklch(0.55 0.25 295);
+  /* Borders */
+  --border: oklch(0.91 0.015 290);
+  --input: oklch(0.93 0.012 290);
+  --ring: oklch(0.58 0.24 330);
 
-  /* Charts - vibrant colors */
-  --chart-1: oklch(0.65 0.22 295);
-  --chart-2: oklch(0.60 0.20 325);
-  --chart-3: oklch(0.55 0.18 265);
-  --chart-4: oklch(0.70 0.15 280);
-  --chart-5: oklch(0.50 0.25 310);
-
+  /* Promień zaokrąglenia */
   --radius: 0.75rem;
 
-  /* Sidebar - lekko stonowany */
-  --sidebar: oklch(0.98 0.01 285);
-  --sidebar-foreground: oklch(0.25 0.02 265);
-  --sidebar-primary: oklch(0.55 0.25 295);
+  /* ===========================================
+     KOLORY SEMANTYCZNE - JASNY MOTYW
+     =========================================== */
+
+  /* Success - zielony */
+  --success: oklch(0.58 0.18 155);
+  --success-foreground: oklch(0.98 0 0);
+  --success-muted: oklch(0.95 0.04 155);
+
+  /* Warning - pomarańczowy */
+  --warning: oklch(0.72 0.16 65);
+  --warning-foreground: oklch(0.28 0.06 65);
+  --warning-muted: oklch(0.95 0.05 65);
+
+  /* Error - czerwony */
+  --error: oklch(0.58 0.24 25);
+  --error-foreground: oklch(0.98 0 0);
+  --error-muted: oklch(0.95 0.04 25);
+
+  /* Info - cyan */
+  --info: oklch(0.58 0.14 200);
+  --info-foreground: oklch(0.98 0 0);
+  --info-muted: oklch(0.95 0.04 200);
+
+  /* ===========================================
+     KOLORY AKCENTOWE - JASNY MOTYW
+     =========================================== */
+
+  /* Violet */
+  --accent-violet: oklch(0.58 0.20 295);
+  --accent-violet-foreground: oklch(0.38 0.16 295);
+  --accent-violet-muted: oklch(0.96 0.035 295);
+
+  /* Fuchsia */
+  --accent-fuchsia: oklch(0.58 0.22 330);
+  --accent-fuchsia-foreground: oklch(0.38 0.16 330);
+  --accent-fuchsia-muted: oklch(0.96 0.04 330);
+
+  /* Pink */
+  --accent-pink: oklch(0.62 0.18 350);
+  --accent-pink-foreground: oklch(0.38 0.12 350);
+  --accent-pink-muted: oklch(0.96 0.035 350);
+
+  /* Amber */
+  --accent-amber: oklch(0.72 0.16 65);
+  --accent-amber-foreground: oklch(0.38 0.10 65);
+  --accent-amber-muted: oklch(0.96 0.045 65);
+
+  /* Orange */
+  --accent-orange: oklch(0.68 0.18 50);
+  --accent-orange-foreground: oklch(0.38 0.10 50);
+  --accent-orange-muted: oklch(0.96 0.04 50);
+
+  /* Sky */
+  --accent-sky: oklch(0.62 0.14 200);
+  --accent-sky-foreground: oklch(0.38 0.10 200);
+  --accent-sky-muted: oklch(0.96 0.035 200);
+
+  /* Emerald */
+  --accent-emerald: oklch(0.58 0.16 155);
+  --accent-emerald-foreground: oklch(0.38 0.12 155);
+  --accent-emerald-muted: oklch(0.96 0.035 155);
+
+  /* Yellow */
+  --accent-yellow: oklch(0.82 0.14 95);
+  --accent-yellow-foreground: oklch(0.32 0.08 95);
+  --accent-yellow-muted: oklch(0.96 0.05 95);
+
+  /* Red */
+  --accent-red: oklch(0.58 0.22 25);
+  --accent-red-foreground: oklch(0.38 0.12 25);
+  --accent-red-muted: oklch(0.96 0.04 25);
+
+  /* Slate - neutralny */
+  --accent-slate: oklch(0.52 0.02 280);
+  --accent-slate-foreground: oklch(0.32 0.02 280);
+  --accent-slate-muted: oklch(0.96 0.01 280);
+
+  /* ===========================================
+     POZIOMY CEFR - JASNY MOTYW
+     =========================================== */
+
+  /* A1 - Emerald (najłatwiejszy) */
+  --level-a1: oklch(0.58 0.16 155);
+  --level-a1-foreground: oklch(0.32 0.10 155);
+  --level-a1-muted: oklch(0.96 0.035 155);
+  --level-a1-border: oklch(0.82 0.08 155);
+
+  /* A2 - Green */
+  --level-a2: oklch(0.58 0.16 145);
+  --level-a2-foreground: oklch(0.32 0.10 145);
+  --level-a2-muted: oklch(0.96 0.035 145);
+  --level-a2-border: oklch(0.82 0.08 145);
+
+  /* B1 - Amber */
+  --level-b1: oklch(0.72 0.16 65);
+  --level-b1-foreground: oklch(0.38 0.10 65);
+  --level-b1-muted: oklch(0.96 0.045 65);
+  --level-b1-border: oklch(0.85 0.08 65);
+
+  /* B2 - Orange */
+  --level-b2: oklch(0.68 0.18 50);
+  --level-b2-foreground: oklch(0.38 0.10 50);
+  --level-b2-muted: oklch(0.96 0.04 50);
+  --level-b2-border: oklch(0.85 0.08 50);
+
+  /* C1 - Red (najtrudniejszy) */
+  --level-c1: oklch(0.58 0.22 25);
+  --level-c1-foreground: oklch(0.38 0.12 25);
+  --level-c1-muted: oklch(0.96 0.04 25);
+  --level-c1-border: oklch(0.85 0.08 25);
+
+  /* ===========================================
+     WYKRESY - JASNY MOTYW
+     =========================================== */
+  --chart-1: oklch(0.58 0.22 330);
+  --chart-2: oklch(0.58 0.20 295);
+  --chart-3: oklch(0.62 0.14 200);
+  --chart-4: oklch(0.58 0.16 155);
+  --chart-5: oklch(0.72 0.16 65);
+
+  /* ===========================================
+     SIDEBAR - JASNY MOTYW
+     =========================================== */
+  --sidebar: oklch(0.975 0.01 300);
+  --sidebar-foreground: oklch(0.25 0.025 280);
+  --sidebar-primary: oklch(0.58 0.24 330);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.95 0.03 295);
-  --sidebar-accent-foreground: oklch(0.3 0.15 295);
-  --sidebar-border: oklch(0.9 0.01 265);
-  --sidebar-ring: oklch(0.55 0.25 295);
+  --sidebar-accent: oklch(0.95 0.03 310);
+  --sidebar-accent-foreground: oklch(0.35 0.15 330);
+  --sidebar-border: oklch(0.91 0.015 290);
+  --sidebar-ring: oklch(0.58 0.24 330);
+  --sidebar-muted: oklch(0.94 0.012 300);
+  --sidebar-muted-foreground: oklch(0.48 0.02 280);
 }
 
 .dark {
-  /* Cieplejsze ciemne tło zamiast czarnego */
-  --background: oklch(0.18 0.015 265);
-  --foreground: oklch(0.95 0.01 285);
+  /* ===========================================
+     KOLORY BAZOWE - CIEMNY MOTYW (Dracula-inspired)
+     Ciepłe, przyjemne dla oka tła z wyraźnymi akcentami
+     =========================================== */
+  
+  /* Tło i tekst główny - ciepłe, głębokie tło */
+  --background: oklch(0.22 0.025 280);
+  --foreground: oklch(0.96 0.01 95);
 
-  /* Karty - lekko jaśniejsze od tła */
-  --card: oklch(0.22 0.02 265);
-  --card-foreground: oklch(0.95 0.01 285);
+  /* Karty - delikatnie jaśniejsze od tła */
+  --card: oklch(0.26 0.028 280);
+  --card-foreground: oklch(0.96 0.01 95);
 
   /* Popover */
-  --popover: oklch(0.22 0.02 265);
-  --popover-foreground: oklch(0.95 0.01 285);
+  --popover: oklch(0.28 0.03 280);
+  --popover-foreground: oklch(0.96 0.01 95);
 
-  /* Primary - jasny violet dla lepszej widoczności */
-  --primary: oklch(0.75 0.20 295);
-  --primary-foreground: oklch(0.15 0.02 265);
+  /* Primary - różowy/magenta w stylu Dracula */
+  --primary: oklch(0.72 0.22 330);
+  --primary-foreground: oklch(0.18 0.02 280);
 
-  /* Secondary - soft dark lavender */
-  --secondary: oklch(0.30 0.05 280);
-  --secondary-foreground: oklch(0.90 0.05 285);
+  /* Secondary - subtelny fiolet */
+  --secondary: oklch(0.32 0.04 280);
+  --secondary-foreground: oklch(0.92 0.02 95);
 
-  /* Muted - ciepły ciemny szary */
-  --muted: oklch(0.28 0.02 270);
-  --muted-foreground: oklch(0.65 0.03 280);
+  /* Muted - stonowane elementy */
+  --muted: oklch(0.30 0.025 280);
+  --muted-foreground: oklch(0.68 0.04 260);
 
-  /* Accent - bright violet/fuchsia */
-  --accent: oklch(0.45 0.15 295);
-  --accent-foreground: oklch(0.95 0.01 285);
+  /* Accent - fioletowy w stylu Dracula */
+  --accent: oklch(0.38 0.08 290);
+  --accent-foreground: oklch(0.94 0.01 95);
 
-  /* Destructive - ciepła czerwień */
-  --destructive: oklch(0.65 0.22 20);
+  /* Destructive - czerwony Dracula */
+  --destructive: oklch(0.68 0.25 20);
 
-  /* Borders - subtelne z kolorem */
-  --border: oklch(0.35 0.03 270);
-  --input: oklch(0.38 0.03 270);
-  --ring: oklch(0.70 0.18 295);
+  /* Borders - subtelne, ale widoczne */
+  --border: oklch(0.38 0.04 280);
+  --input: oklch(0.35 0.035 280);
+  --ring: oklch(0.72 0.22 330);
 
-  /* Charts - vibrant dark colors */
-  --chart-1: oklch(0.70 0.22 295);
-  --chart-2: oklch(0.65 0.20 325);
-  --chart-3: oklch(0.60 0.18 265);
-  --chart-4: oklch(0.75 0.15 280);
-  --chart-5: oklch(0.55 0.25 310);
+  /* ===========================================
+     KOLORY SEMANTYCZNE - CIEMNY MOTYW
+     Wyraźne, ale nie męczące kolory
+     =========================================== */
 
-  /* Sidebar - lekko stonowany */
-  --sidebar: oklch(0.20 0.02 270);
-  --sidebar-foreground: oklch(0.90 0.02 285);
-  --sidebar-primary: oklch(0.75 0.20 295);
-  --sidebar-primary-foreground: oklch(0.15 0.02 265);
-  --sidebar-accent: oklch(0.30 0.05 280);
-  --sidebar-accent-foreground: oklch(0.90 0.05 285);
-  --sidebar-border: oklch(0.35 0.03 270);
-  --sidebar-ring: oklch(0.70 0.18 295);
+  /* Success - cyan/zielony Dracula */
+  --success: oklch(0.78 0.16 160);
+  --success-foreground: oklch(0.92 0.08 160);
+  --success-muted: oklch(0.35 0.08 160);
+
+  /* Warning - pomarańczowy Dracula */
+  --warning: oklch(0.80 0.15 65);
+  --warning-foreground: oklch(0.92 0.08 65);
+  --warning-muted: oklch(0.35 0.08 65);
+
+  /* Error - czerwony Dracula */
+  --error: oklch(0.68 0.25 20);
+  --error-foreground: oklch(0.92 0.08 20);
+  --error-muted: oklch(0.35 0.10 20);
+
+  /* Info - cyan Dracula */
+  --info: oklch(0.82 0.12 200);
+  --info-foreground: oklch(0.92 0.06 200);
+  --info-muted: oklch(0.35 0.08 200);
+
+  /* ===========================================
+     KOLORY AKCENTOWE - CIEMNY MOTYW
+     Żywe kolory inspirowane Draculą
+     =========================================== */
+
+  /* Violet - fioletowy Dracula */
+  --accent-violet: oklch(0.74 0.18 295);
+  --accent-violet-foreground: oklch(0.90 0.08 295);
+  --accent-violet-muted: oklch(0.34 0.08 295);
+
+  /* Fuchsia - różowy Dracula */
+  --accent-fuchsia: oklch(0.72 0.22 330);
+  --accent-fuchsia-foreground: oklch(0.90 0.10 330);
+  --accent-fuchsia-muted: oklch(0.34 0.10 330);
+
+  /* Pink - jasnoróżowy */
+  --accent-pink: oklch(0.78 0.18 350);
+  --accent-pink-foreground: oklch(0.92 0.08 350);
+  --accent-pink-muted: oklch(0.35 0.08 350);
+
+  /* Amber - pomarańczowy Dracula */
+  --accent-amber: oklch(0.80 0.15 65);
+  --accent-amber-foreground: oklch(0.92 0.06 65);
+  --accent-amber-muted: oklch(0.35 0.08 65);
+
+  /* Orange - ciepły pomarańcz */
+  --accent-orange: oklch(0.76 0.18 50);
+  --accent-orange-foreground: oklch(0.92 0.06 50);
+  --accent-orange-muted: oklch(0.35 0.08 50);
+
+  /* Sky - cyan Dracula */
+  --accent-sky: oklch(0.82 0.12 200);
+  --accent-sky-foreground: oklch(0.92 0.05 200);
+  --accent-sky-muted: oklch(0.35 0.08 200);
+
+  /* Emerald - zielony Dracula */
+  --accent-emerald: oklch(0.78 0.16 145);
+  --accent-emerald-foreground: oklch(0.92 0.06 145);
+  --accent-emerald-muted: oklch(0.35 0.08 145);
+
+  /* Yellow - żółty Dracula */
+  --accent-yellow: oklch(0.88 0.14 95);
+  --accent-yellow-foreground: oklch(0.25 0.08 95);
+  --accent-yellow-muted: oklch(0.35 0.08 95);
+
+  /* Red - czerwony Dracula */
+  --accent-red: oklch(0.68 0.25 20);
+  --accent-red-foreground: oklch(0.92 0.06 20);
+  --accent-red-muted: oklch(0.35 0.10 20);
+
+  /* Slate - neutralny szary z lekkim odcieniem */
+  --accent-slate: oklch(0.68 0.025 260);
+  --accent-slate-foreground: oklch(0.90 0.015 260);
+  --accent-slate-muted: oklch(0.35 0.03 260);
+
+  /* ===========================================
+     POZIOMY CEFR - CIEMNY MOTYW
+     Wyraźne rozróżnienie poziomów
+     =========================================== */
+
+  /* A1 - Emerald (najłatwiejszy) - cyan/zielony */
+  --level-a1: oklch(0.78 0.16 160);
+  --level-a1-foreground: oklch(0.92 0.06 160);
+  --level-a1-muted: oklch(0.35 0.08 160);
+  --level-a1-border: oklch(0.50 0.12 160);
+
+  /* A2 - Green */
+  --level-a2: oklch(0.78 0.16 145);
+  --level-a2-foreground: oklch(0.92 0.06 145);
+  --level-a2-muted: oklch(0.35 0.08 145);
+  --level-a2-border: oklch(0.50 0.12 145);
+
+  /* B1 - Amber/Orange */
+  --level-b1: oklch(0.80 0.15 65);
+  --level-b1-foreground: oklch(0.92 0.06 65);
+  --level-b1-muted: oklch(0.35 0.08 65);
+  --level-b1-border: oklch(0.52 0.10 65);
+
+  /* B2 - Orange */
+  --level-b2: oklch(0.76 0.18 50);
+  --level-b2-foreground: oklch(0.92 0.06 50);
+  --level-b2-muted: oklch(0.35 0.08 50);
+  --level-b2-border: oklch(0.52 0.12 50);
+
+  /* C1 - Red/Pink (najtrudniejszy) */
+  --level-c1: oklch(0.68 0.25 20);
+  --level-c1-foreground: oklch(0.92 0.06 20);
+  --level-c1-muted: oklch(0.35 0.10 20);
+  --level-c1-border: oklch(0.50 0.15 20);
+
+  /* ===========================================
+     WYKRESY - CIEMNY MOTYW
+     Żywe kolory dla lepszej widoczności
+     =========================================== */
+  --chart-1: oklch(0.72 0.22 330);
+  --chart-2: oklch(0.74 0.18 295);
+  --chart-3: oklch(0.82 0.12 200);
+  --chart-4: oklch(0.78 0.16 145);
+  --chart-5: oklch(0.80 0.15 65);
+
+  /* ===========================================
+     SIDEBAR - CIEMNY MOTYW
+     Spójne z resztą UI
+     =========================================== */
+  --sidebar: oklch(0.20 0.022 280);
+  --sidebar-foreground: oklch(0.94 0.01 95);
+  --sidebar-primary: oklch(0.72 0.22 330);
+  --sidebar-primary-foreground: oklch(0.18 0.02 280);
+  --sidebar-accent: oklch(0.32 0.04 280);
+  --sidebar-accent-foreground: oklch(0.92 0.02 95);
+  --sidebar-border: oklch(0.36 0.035 280);
+  --sidebar-ring: oklch(0.72 0.22 330);
+  --sidebar-muted: oklch(0.26 0.02 280);
+  --sidebar-muted-foreground: oklch(0.62 0.03 260);
 }
 
 @layer base {
@@ -167,4 +487,43 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* ===========================================
+   ANIMACJE
+   =========================================== */
+
+/* Animacja gradientu tekstu */
+@keyframes gradient {
+  0%, 100% {
+    background-size: 200% 200%;
+    background-position: left center;
+  }
+  50% {
+    background-size: 200% 200%;
+    background-position: right center;
+  }
+}
+
+.animate-gradient {
+  animation: gradient 4s ease infinite;
+}
+
+/* Wolniejszy bounce */
+@keyframes bounce-slow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 3s ease-in-out infinite;
+}
+
+/* Płynne przewijanie dla linków anchor */
+html {
+  scroll-behavior: smooth;
 }
