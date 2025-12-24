@@ -43,41 +43,23 @@ export async function updateUserName(rawName: unknown): Promise<ActionResult> {
 }
 
 /**
- * Aktualizuje email użytkownika
+ * Aktualizacja email jest ZABLOKOWANA.
  * 
- * UWAGA: Zmiana emaila może powodować problemy z synchronizacją z centrum logowania.
- * Email w lokalnej bazie może się różnić od emaila w centrum.
+ * Email jest synchronizowany z centrum logowania SSO.
+ * Zmiana emaila musi być wykonana w centrum logowania, a następnie
+ * zostanie automatycznie zsynchronizowana przy następnym logowaniu.
+ * 
+ * Powód: SSO callback szuka użytkowników po emailu. Gdyby email
+ * mógł być zmieniony lokalnie, użytkownik straciłby dostęp
+ * do swojego konta po ponownym zalogowaniu przez SSO.
  */
-export async function updateUserEmail(email: string): Promise<ActionResult> {
-    const session = await auth();
-    if (!session?.user?.id) return { success: false, error: 'Nie jesteś zalogowany' };
-
-    if (!email || !email.includes('@')) {
-        return { success: false, error: 'Nieprawidłowy adres email' };
-    }
-
-    // Sprawdzenie czy podany email jest już zajęty
-    const existingUser = await db.query.users.findFirst({
-        where: eq(users.email, email.toLowerCase())
-    });
-
-    if (existingUser && existingUser.id !== session.user.id) {
-        return { success: false, error: 'Ten adres email jest już używany' };
-    }
-
-    try {
-        await db.update(users)
-            .set({ email: email.toLowerCase() })
-            .where(eq(users.id, session.user.id));
-
-        revalidatePath('/settings');
-
-        return { success: true, message: 'Email został zaktualizowany' };
-    } catch (error) {
-        console.error('Błąd podczas aktualizacji emaila:', error);
-        return { success: false, error: 'Nie udało się zaktualizować emaila' };
-    }
+export async function updateUserEmail(_email: string): Promise<ActionResult> {
+    return {
+        success: false,
+        error: 'Zmiana adresu email jest możliwa tylko w centrum logowania. Po zmianie w centrum, email zostanie automatycznie zaktualizowany przy następnym logowaniu.'
+    };
 }
 
 // UWAGA: Funkcja updateUserPassword została usunięta
 // Logowanie odbywa się przez SSO centrum logowania - hasła nie są przechowywane w flashcards-app
+

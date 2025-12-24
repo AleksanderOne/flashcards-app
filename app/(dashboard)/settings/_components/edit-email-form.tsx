@@ -1,72 +1,58 @@
 'use client';
 
-import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Field, FieldLabel } from '@/components/ui/field';
-import { updateUserEmail } from '@/app/actions/profile-actions';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { Info, ExternalLink } from 'lucide-react';
 
 interface EditEmailFormProps {
     currentEmail: string;
 }
 
+/**
+ * Komponent wyświetlający email użytkownika (tylko do odczytu).
+ * 
+ * Zmiana emaila jest możliwa tylko w centrum logowania SSO.
+ * Email jest synchronizowany automatycznie przy każdym logowaniu.
+ */
 export function EditEmailForm({ currentEmail }: EditEmailFormProps) {
-    const [email, setEmail] = useState(currentEmail);
-    const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-
-        try {
-            const result = await updateUserEmail(email);
-            if (result.success) {
-                toast.success(result.message);
-                router.refresh();
-            } else {
-                toast.error(result.error);
-            }
-        } catch (error) {
-            toast.error('Wystąpił nieoczekiwany błąd');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const ssoUrl = process.env.NEXT_PUBLIC_SSO_CENTER_URL || '#';
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Adres email</CardTitle>
-                <CardDescription>Zmień swój adres email używany do logowania</CardDescription>
+                <CardDescription>
+                    Email jest zarządzany przez centrum logowania
+                </CardDescription>
             </CardHeader>
-            <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <Alert>
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>
-                            Po zmianie emaila będziesz musiał używać nowego adresu do logowania.
-                        </AlertDescription>
-                    </Alert>
-                    <Field>
-                        <FieldLabel>Email</FieldLabel>
-                        <Input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="twoj@email.com"
-                            disabled={isLoading}
-                        />
-                    </Field>
-                    <Button type="submit" disabled={isLoading || email === currentEmail}>
-                        {isLoading ? 'Zapisywanie...' : 'Zapisz email'}
-                    </Button>
-                </form>
+            <CardContent className="space-y-4">
+                {/* Wyświetlenie aktualnego emaila */}
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                    <span className="text-sm font-medium">{currentEmail}</span>
+                </div>
+
+                {/* Informacja o centrum logowania */}
+                <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                        Zmiana adresu email jest możliwa tylko w centrum logowania.
+                        Po zmianie w centrum, nowy email zostanie automatycznie
+                        zsynchronizowany przy następnym logowaniu.
+                    </AlertDescription>
+                </Alert>
+
+                {/* Link do centrum logowania */}
+                {ssoUrl && ssoUrl !== '#' && (
+                    <a
+                        href={ssoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                    >
+                        Przejdź do centrum logowania
+                        <ExternalLink className="h-4 w-4" />
+                    </a>
+                )}
             </CardContent>
         </Card>
     );
