@@ -90,7 +90,7 @@ export function WordsManagementCard() {
         });
 
         if (result.success && result.words) {
-            setWords(result.words as any);
+            setWords(result.words as unknown as Word[]);
         } else {
             toast.error(result.error || 'Błąd podczas pobierania słówek');
         }
@@ -142,6 +142,7 @@ export function WordsManagementCard() {
         if (!editDialog.word) return;
 
         setActionLoading(editDialog.word.id);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await updateWord(editDialog.word.id, editData as any);
 
         if (result.success) {
@@ -198,7 +199,7 @@ export function WordsManagementCard() {
                                 </CardDescription>
                             </div>
                         </div>
-                        
+
                         {/* Statystyki */}
                         <div className="flex gap-3">
                             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-warning-muted border border-warning/20">
@@ -242,8 +243,8 @@ export function WordsManagementCard() {
                                     </div>
                                     <Select
                                         value={filters.status}
-                                        onValueChange={(value: any) =>
-                                            setFilters({ ...filters, status: value })
+                                        onValueChange={(value) =>
+                                            setFilters({ ...filters, status: value as 'all' | 'approved' | 'pending' })
                                         }
                                     >
                                         <SelectTrigger id="status-filter" className="h-10 bg-background/50">
@@ -371,8 +372,8 @@ export function WordsManagementCard() {
                                             </TableCell>
                                             <TableCell className="text-muted-foreground">{word.polish}</TableCell>
                                             <TableCell>
-                                                <Badge 
-                                                    variant="outline" 
+                                                <Badge
+                                                    variant="outline"
                                                     className={cn("font-bold", getLevelBadgeClasses(word.level))}
                                                 >
                                                     {word.level}

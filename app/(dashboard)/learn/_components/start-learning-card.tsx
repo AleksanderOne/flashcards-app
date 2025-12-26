@@ -6,8 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Brain, Keyboard, ImageIcon, Mic, CheckCircle2 } from 'lucide-react';
+import { Brain, Keyboard, ImageIcon, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 
@@ -110,7 +109,7 @@ export function StartLearningCard({ categoriesByLevel }: StartLearningCardProps)
                             const cats = categoriesByLevel[lvl];
                             const total = Object.values(cats).reduce((sum, cat) => sum + cat.total, 0);
                             const learned = Object.values(cats).reduce((sum, cat) => sum + cat.learned, 0);
-                            const percentage = total > 0 ? Math.round((learned / total) * 100) : 0;
+                            const _percentage = total > 0 ? Math.round((learned / total) * 100) : 0;
                             const isComplete = learned === total && total > 0;
 
                             return (

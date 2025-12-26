@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db/drizzle';
 import { words, users } from '@/lib/db/schema';
 import { ilike, sql, or, and, eq } from 'drizzle-orm';
+import { LevelType } from '@/lib/constants';
 import { redirect } from 'next/navigation';
 import { Search } from '@/components/search';
 import { WordsFilter } from './words-filter';
@@ -60,7 +61,7 @@ export default async function AllWordsPage(props: AllWordsPageProps) {
     }
 
     if (level && level !== 'all') {
-        filters.push(eq(words.level, level as any));
+        filters.push(eq(words.level, level as LevelType));
     }
 
     // Tylko zatwierdzone słówka

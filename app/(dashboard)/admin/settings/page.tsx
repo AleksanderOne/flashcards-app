@@ -1,5 +1,4 @@
 import { PageLayout } from '@/components/page-layout';
-import { Settings } from 'lucide-react';
 import { EmailSettingsCard } from './_components/email-settings-card';
 import { ContactMessagesCard } from './_components/contact-messages-card';
 import { getAppSettings, getContactMessages } from './actions';

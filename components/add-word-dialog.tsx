@@ -74,7 +74,7 @@ export function AddWordDialog() {
             } else {
                 toast.error(result.error || 'Nie udało się dodać słówka');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Wystąpił nieoczekiwany błąd');
         } finally {
             setLoading(false);

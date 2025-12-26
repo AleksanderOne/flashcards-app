@@ -9,7 +9,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress';
 import { getImageForWord } from '@/lib/pixabay';
 import { submitAnswer } from '@/app/actions/learning';
-import { Volume2, VolumeXIcon, CheckCircle, XCircle, ArrowRight, Loader2, Image as ImageIcon, X, LogOut, Flame, Target } from 'lucide-react';
+import { Volume2, VolumeXIcon, CheckCircle, XCircle, ArrowRight, Loader2, Image as ImageIcon, X, LogOut } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -28,8 +28,8 @@ import Image from 'next/image';
 import { LevelType } from '@/lib/constants';
 
 // Komponent wskaźnika trudności
-function DifficultyBadge({ difficulty, errorCount, totalAttempts }: { 
-    difficulty: number; 
+function DifficultyBadge({ difficulty, errorCount, totalAttempts }: {
+    difficulty: number;
     errorCount: number;
     totalAttempts: number;
 }) {
@@ -88,7 +88,7 @@ interface LearningClientProps {
 
 export function LearningClient({ initialWords, mode, userName, sessionType = 'learn' }: LearningClientProps) {
     const router = useRouter();
-    const [words, setWords] = useState<Word[]>(initialWords);
+    const [words, _setWords] = useState<Word[]>(initialWords);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [input, setInput] = useState('');
     const [isChecking, setIsChecking] = useState(false);
@@ -209,7 +209,7 @@ export function LearningClient({ initialWords, mode, userName, sessionType = 'le
     const handleNext = useCallback(() => {
         // Zapobiega wielokrotnemu wywołaniu gdy sesja już zakończona
         if (sessionComplete) return;
-        
+
         // Anulowanie automatycznego przejścia przy ręcznej interakcji
         if (nextTimeoutRef.current) {
             clearTimeout(nextTimeoutRef.current);
@@ -245,7 +245,7 @@ export function LearningClient({ initialWords, mode, userName, sessionType = 'le
         const handleGlobalKeyDown = (e: KeyboardEvent) => {
             // Nie reaguj gdy sesja jest zakończona
             if (sessionComplete) return;
-            
+
             if (feedback !== null) {
                 if (e.code === 'Space' || e.key === 'Enter') {
                     e.preventDefault();
@@ -373,8 +373,8 @@ export function LearningClient({ initialWords, mode, userName, sessionType = 'le
                         <span>Słówko {currentIndex + 1} z {words.length}</span>
                         {/* Wskaźnik trudności (tylko dla powtórek) */}
                         {sessionType === 'review' && currentWord.difficulty !== undefined && (
-                            <DifficultyBadge 
-                                difficulty={currentWord.difficulty} 
+                            <DifficultyBadge
+                                difficulty={currentWord.difficulty}
                                 errorCount={currentWord.errorCount || 0}
                                 totalAttempts={currentWord.totalAttempts || 0}
                             />
@@ -400,7 +400,7 @@ export function LearningClient({ initialWords, mode, userName, sessionType = 'le
                                 </>
                             )}
                         </Button>
-                        
+
                         {/* Przycisk przerwania nauki */}
                         <AlertDialog>
                             <AlertDialogTrigger asChild>

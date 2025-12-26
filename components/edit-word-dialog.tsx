@@ -75,7 +75,7 @@ export function EditWordDialog({ word, open, onOpenChange, onSuccess }: EditWord
             } else {
                 toast.error(result.error || 'Błąd podczas aktualizacji');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Wystąpił błąd podczas zapisu');
         } finally {
             setLoading(false);

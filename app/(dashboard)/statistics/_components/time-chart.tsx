@@ -45,7 +45,7 @@ export function TimeChart({ data }: TimeChartProps) {
                     }}
                     labelStyle={{ color: 'var(--foreground)' }}
                     itemStyle={{ color: 'var(--foreground)' }}
-                    formatter={(value: any) => [`${Number(value).toFixed(1)} minut`, 'Czas nauki']}
+                    formatter={(value: number | undefined) => [`${Number(value ?? 0).toFixed(1)} minut`, 'Czas nauki']}
                     labelFormatter={(label) => new Date(label).toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' })}
                 />
                 <Bar

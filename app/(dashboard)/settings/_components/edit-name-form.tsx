@@ -30,7 +30,7 @@ export function EditNameForm({ currentName }: EditNameFormProps) {
             } else {
                 toast.error(result.error);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Wystąpił nieoczekiwany błąd');
         } finally {
             setIsLoading(false);
@@ -52,8 +52,8 @@ export function EditNameForm({ currentName }: EditNameFormProps) {
                     className="h-11"
                 />
             </div>
-            <Button 
-                type="submit" 
+            <Button
+                type="submit"
                 disabled={isLoading || !hasChanges}
                 className="bg-gradient-to-r from-primary to-accent-fuchsia hover:opacity-90 text-white"
             >

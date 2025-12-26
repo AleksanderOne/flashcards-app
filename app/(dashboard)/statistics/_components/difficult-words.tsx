@@ -17,7 +17,7 @@ interface DifficultWordsProps {
     showAccuracy?: boolean;
 }
 
-export function DifficultWords({ words, title, emptyMessage = "Brak danych", showAccuracy = true }: DifficultWordsProps) {
+export function DifficultWords({ words, title: _title, emptyMessage = "Brak danych", showAccuracy = true }: DifficultWordsProps) {
     if (words.length === 0) {
         return (
             <div className="flex h-[200px] items-center justify-center text-muted-foreground">
@@ -47,9 +47,9 @@ export function DifficultWords({ words, title, emptyMessage = "Brak danych", sho
                         </div>
                         {showAccuracy && (
                             <div className="flex items-center gap-2 mt-1">
-                                <Progress 
-                                    value={word.accuracy} 
-                                    className="h-1.5 flex-1" 
+                                <Progress
+                                    value={word.accuracy}
+                                    className="h-1.5 flex-1"
                                 />
                                 <span className="text-xs text-muted-foreground whitespace-nowrap">
                                     {word.correct}/{word.total} ({word.accuracy.toFixed(0)}%)
@@ -57,7 +57,7 @@ export function DifficultWords({ words, title, emptyMessage = "Brak danych", sho
                             </div>
                         )}
                     </div>
-                    <Badge 
+                    <Badge
                         variant={word.accuracy < 50 ? "destructive" : word.accuracy < 75 ? "secondary" : "default"}
                         className="shrink-0"
                     >

@@ -2,14 +2,14 @@ import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db/drizzle';
 import { words, wordProgress, userStats } from '@/lib/db/schema';
-import { eq, and, lte, desc, sql } from 'drizzle-orm';
+import { eq, and, lte, sql } from 'drizzle-orm';
 import { PageLayout } from '@/components/page-layout';
 import { ReviewCard } from './_components/review-card';
 import { StatsCard } from '../learn/_components/stats-card';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { BookOpen, Clock, AlertCircle, CheckCircle2, TrendingUp, Zap, RefreshCw } from 'lucide-react';
+import { BookOpen, Clock, CheckCircle2, Zap } from 'lucide-react';
 
 export default async function ReviewPage() {
     const session = await auth();
@@ -52,7 +52,7 @@ export default async function ReviewPage() {
     // Pobranie słówek zaplanowanych na potem (najbliższe 7 dni)
     const upcomingDate = new Date();
     upcomingDate.setDate(upcomingDate.getDate() + 7);
-    
+
     const upcomingReviews = await db
         .select({
             english: words.english,
@@ -150,7 +150,7 @@ export default async function ReviewPage() {
                                         </p>
                                     </div>
                                     <Link href="/review/session" className="w-full md:w-auto">
-                                        <Button 
+                                        <Button
                                             size="lg"
                                             className="w-full md:w-auto h-14 px-8 text-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-xl hover:shadow-2xl transition-all gap-2"
                                         >
@@ -182,11 +182,11 @@ export default async function ReviewPage() {
                                     Wszystko powtórzone! 🎉
                                 </h2>
                                 <p className="text-green-700 dark:text-green-300 max-w-md mx-auto">
-                                    Nie masz teraz żadnych słówek do powtórki. 
+                                    Nie masz teraz żadnych słówek do powtórki.
                                     Wróć później lub ucz się nowych słówek!
                                 </p>
                             </div>
-                            
+
                             {totalCount === 0 && (
                                 <div className="pt-4">
                                     <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">

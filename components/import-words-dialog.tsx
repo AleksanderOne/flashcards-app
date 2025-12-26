@@ -72,7 +72,7 @@ export function ImportWordsDialog() {
             } else {
                 toast.error(result.error || 'Błąd importu');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Wystąpił nieoczekiwany błąd');
         } finally {
             setLoading(false);

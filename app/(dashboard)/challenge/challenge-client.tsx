@@ -7,7 +7,6 @@ import { Timer, Trophy, Play, RotateCcw, AlertCircle, CheckCircle2, XCircle } fr
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ChallengeWord } from '@/actions/challenge-actions';
-import { Progress } from "@/components/ui/progress";
 import Link from 'next/link';
 
 type Phase = 'setup' | 'playing' | 'finished';
@@ -30,7 +29,7 @@ export default function ChallengeClient({ availableWords }: ChallengeClientProps
     const [totalAttempts, setTotalAttempts] = useState<number>(0);
     const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
     const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
-    const [isAnswerCorrect, setIsAnswerCorrect] = useState<boolean | null>(null);
+    const [_isAnswerCorrect, setIsAnswerCorrect] = useState<boolean | null>(null);
 
     // Filter available words to valid ones (just in case)
     const words = availableWords.filter(w => w.english && w.polish);

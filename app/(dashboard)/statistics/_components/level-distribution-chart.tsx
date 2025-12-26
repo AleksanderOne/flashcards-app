@@ -24,8 +24,20 @@ const LEVEL_LABELS: Record<string, string> = {
     'C1': 'C1 - Zaawansowany',
 };
 
+// Interfejs dla danych tooltipa Recharts
+interface TooltipPayload {
+    level: string;
+    count: number;
+    correct: number;
+}
+
+interface CustomTooltipProps {
+    active?: boolean;
+    payload?: Array<{ payload: TooltipPayload }>;
+}
+
 // Komponent tooltipa z lepszym pozycjonowaniem
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (!active || !payload || !payload.length) return null;
 
     const data = payload[0].payload;
@@ -146,7 +158,8 @@ export function LevelDistributionChart({ data }: LevelDistributionChartProps) {
                             fill="var(--foreground)"
                             fontSize={13}
                             fontWeight={500}
-                            formatter={(value: any) => value > 0 ? `${value}` : ''}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            formatter={(value: any) => Number(value) > 0 ? `${value}` : ''}
                         />
                     </Bar>
                 </BarChart>

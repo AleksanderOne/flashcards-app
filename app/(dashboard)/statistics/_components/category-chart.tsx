@@ -63,8 +63,9 @@ export function CategoryChart({ data }: CategoryChartProps) {
                     }}
                     labelStyle={{ color: 'var(--foreground)' }}
                     itemStyle={{ color: 'var(--foreground)' }}
-                    formatter={(value: any, name: any, props: any) => [
-                        `${value} odpowiedzi (${props.payload.accuracy.toFixed(1)}% poprawnych)`,
+                    // @ts-expect-error Recharts Formatter typ jest wewnętrznie niespójny (value/name mogą być undefined)
+                    formatter={(value: number | undefined, _name: string, props: { payload: { category: string; accuracy: number } }) => [
+                        `${value ?? 0} odpowiedzi (${props.payload.accuracy.toFixed(1)}% poprawnych)`,
                         props.payload.category
                     ]}
                 />

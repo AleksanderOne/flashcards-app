@@ -165,7 +165,7 @@ export function UsersTable({ users }: { users: User[] }) {
                                                     await deleteUserHistory(user.id);
                                                     toast.success('Historia użytkownika została usunięta');
                                                     router.refresh();
-                                                } catch (error) {
+                                                } catch (_error) {
                                                     toast.error('Nie udało się usunąć historii');
                                                 }
                                             }}>
@@ -176,7 +176,7 @@ export function UsersTable({ users }: { users: User[] }) {
                                                     await resetUserProgress(user.id);
                                                     toast.success('Postępy użytkownika zostały zresetowane');
                                                     router.refresh();
-                                                } catch (error) {
+                                                } catch (_error) {
                                                     toast.error('Nie udało się zresetować postępów');
                                                 }
                                             }}>
@@ -187,7 +187,7 @@ export function UsersTable({ users }: { users: User[] }) {
                                                     await deleteUserData(user.id);
                                                     toast.success('Wszystkie dane użytkownika zostały usunięte');
                                                     router.refresh();
-                                                } catch (error) {
+                                                } catch (_error) {
                                                     toast.error('Nie udało się usunąć danych');
                                                 }
                                             }}>

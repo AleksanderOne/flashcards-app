@@ -45,7 +45,7 @@ export function ActivityChart({ data }: ActivityChartProps) {
                     }}
                     labelStyle={{ color: 'var(--foreground)' }}
                     itemStyle={{ color: 'var(--foreground)' }}
-                    formatter={(value: any) => [`${value} odpowiedzi`, 'Aktywność']}
+                    formatter={(value: number | undefined) => [`${value ?? 0} odpowiedzi`, 'Aktywność']}
                     labelFormatter={(label) => new Date(label).toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' })}
                 />
                 <Bar

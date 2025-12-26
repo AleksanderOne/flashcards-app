@@ -52,8 +52,9 @@ export function AccuracyChart({ data }: AccuracyChartProps) {
                     }}
                     labelStyle={{ color: 'var(--foreground)' }}
                     itemStyle={{ color: 'var(--foreground)' }}
-                    formatter={(value: any, name: any, props: any) => [
-                        `${Number(value).toFixed(1)}% (${props.payload.total} odpowiedzi)`,
+                    // @ts-expect-error Recharts Formatter typ jest wewnętrznie niespójny (value/name mogą być undefined)
+                    formatter={(value: number | undefined, _name: string, props: { payload: { total: number } }) => [
+                        `${Number(value ?? 0).toFixed(1)}% (${props.payload.total} odpowiedzi)`,
                         'Skuteczność'
                     ]}
                     labelFormatter={(label) => new Date(label).toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' })}

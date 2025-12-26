@@ -9,6 +9,7 @@ import { PageLayout } from '@/components/page-layout';
 import { CheckCircle2, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { LevelType } from '@/lib/constants';
 
 interface ReviewSessionPageProps {
     searchParams: Promise<{
@@ -31,7 +32,7 @@ export default async function ReviewSessionPage(props: ReviewSessionPageProps) {
     const userId: string = session.user.id;
     const level = searchParams.level;
     const category = searchParams.category;
-    const mode = (searchParams.mode || 'pl_to_en_text') as any;
+    const mode = (searchParams.mode || 'pl_to_en_text') as 'pl_to_en_text' | 'en_to_pl_text' | 'pl_to_en_quiz' | 'en_to_pl_quiz';
 
     // Pobranie TYLKO słówek do powtórki (termin minął) - NIE nowych słówek
     const reviewsQuery = db
@@ -57,7 +58,7 @@ export default async function ReviewSessionPage(props: ReviewSessionPageProps) {
         .where(
             and(
                 lte(wordProgress.nextReviewDate, new Date()), // Termin powtórki minął
-                level ? eq(words.level, level as any) : undefined,
+                level ? eq(words.level, level as LevelType) : undefined,
                 category ? eq(words.category, category) : undefined
             )
         )
@@ -104,7 +105,7 @@ export default async function ReviewSessionPage(props: ReviewSessionPageProps) {
                 (errorRate * 3) + ((2.5 - (w.easiness || 2.5)) * 2) + 1
             )));
         }
-        
+
         return {
             id: w.english,
             english: w.english,

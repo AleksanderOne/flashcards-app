@@ -21,17 +21,30 @@ const MODE_ICONS: Record<string, string> = {
     'en_to_pl_quiz': '🇬🇧→🇵🇱',
 };
 
+// Interfejs dla danych tooltipa Recharts
+interface TooltipPayload {
+    mode: string;
+    label: string;
+    count: number;
+    accuracy: number;
+}
+
+interface CustomTooltipProps {
+    active?: boolean;
+    payload?: Array<{ payload: TooltipPayload }>;
+}
+
 // Komponent tooltipa
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (!active || !payload || !payload.length) return null;
-    
+
     const data = payload[0].payload;
-    
+
     return (
         <div className="bg-card border border-border rounded-xl shadow-xl p-4 min-w-[180px]">
             <div className="flex items-center gap-2 mb-2">
-                <div 
-                    className="w-4 h-4 rounded-full" 
+                <div
+                    className="w-4 h-4 rounded-full"
                     style={{ backgroundColor: MODE_COLORS[data.mode as keyof typeof MODE_COLORS] }}
                 />
                 <span className="font-semibold text-foreground text-sm">
@@ -88,19 +101,19 @@ export function LearningModeChart({ data }: LearningModeChartProps) {
                             strokeWidth={3}
                         >
                             {dataWithPercent.map((entry, index) => (
-                                <Cell 
-                                    key={`cell-${index}`} 
-                                    fill={MODE_COLORS[entry.mode as keyof typeof MODE_COLORS] || 'var(--muted-foreground)'} 
+                                <Cell
+                                    key={`cell-${index}`}
+                                    fill={MODE_COLORS[entry.mode as keyof typeof MODE_COLORS] || 'var(--muted-foreground)'}
                                 />
                             ))}
                         </Pie>
-                        <Tooltip 
+                        <Tooltip
                             content={<CustomTooltip />}
                             wrapperStyle={{ zIndex: 1000 }}
                         />
                     </PieChart>
                 </ResponsiveContainer>
-                
+
                 {/* Środkowa etykieta */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="text-center">
@@ -109,19 +122,19 @@ export function LearningModeChart({ data }: LearningModeChartProps) {
                     </div>
                 </div>
             </div>
-            
+
             {/* Legenda */}
             <div className="flex flex-col gap-2 pt-2 border-t">
                 {data.map((item) => {
                     const isQuiz = item.mode.includes('quiz');
                     return (
-                        <div 
+                        <div
                             key={item.mode}
                             className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-muted/50 transition-colors"
                         >
                             <div className="flex items-center gap-3">
-                                <div 
-                                    className="w-3 h-3 rounded-full" 
+                                <div
+                                    className="w-3 h-3 rounded-full"
                                     style={{ backgroundColor: MODE_COLORS[item.mode as keyof typeof MODE_COLORS] }}
                                 />
                                 <span className="text-sm">

@@ -10,8 +10,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.nextUrl.origin));
 }
 
-export async function POST(request: NextRequest) {
-    const baseUrl = request.nextUrl.origin;
+export async function POST(_request: NextRequest) {
 
     await clearSSOSession();
 

@@ -6,6 +6,7 @@ import { sql, eq } from 'drizzle-orm';
 import { WORD_DATABASE } from '@/data/seed-data';
 import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { LevelType } from '@/lib/constants';
 
 // Mapowanie słówek do kategorii na podstawie WORD_DATABASE
 function buildCategoryMap() {
@@ -75,7 +76,7 @@ export async function fixWordCategories() {
                     .update(words)
                     .set({
                         category: mapping.category,
-                        level: mapping.level as any
+                        level: mapping.level as LevelType
                     })
                     .where(eq(words.id, word.id));
 

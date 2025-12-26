@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db/drizzle';
-import { eq, sql, and, gte, desc } from 'drizzle-orm';
+import { eq, and, gte } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ActivityChart } from './_components/activity-chart';
@@ -13,7 +13,6 @@ import { LearningModeChart } from './_components/learning-mode-chart';
 import { TimeChart } from './_components/time-chart';
 import { DifficultWords } from './_components/difficult-words';
 import { StatsFilters } from './_components/stats-filters';
-import { StatsCard } from '../learn/_components/stats-card';
 import { userStats, learningSessions, wordProgress } from '@/lib/db/schema';
 import { PageLayout } from '@/components/page-layout';
 import { Suspense } from 'react';
@@ -701,10 +700,10 @@ export default async function StatisticsPage(props: StatisticsPageProps) {
                                             </div>
                                         </div>
                                         <div className={`px-3 py-1.5 rounded-full text-sm font-semibold ${session.accuracy >= 80
-                                                ? 'bg-success/10 text-success'
-                                                : session.accuracy >= 60
-                                                    ? 'bg-warning/10 text-warning'
-                                                    : 'bg-error/10 text-error'
+                                            ? 'bg-success/10 text-success'
+                                            : session.accuracy >= 60
+                                                ? 'bg-warning/10 text-warning'
+                                                : 'bg-error/10 text-error'
                                             }`}>
                                             {session.accuracy.toFixed(0)}%
                                         </div>

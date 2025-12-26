@@ -3,10 +3,10 @@ import { db } from '@/lib/db/drizzle';
 import { achievements, userStats } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
-import { 
-    ACHIEVEMENTS_LIST, 
-    ACHIEVEMENT_CATEGORIES, 
-    RARITY_COLORS, 
+import {
+    ACHIEVEMENTS_LIST,
+    ACHIEVEMENT_CATEGORIES,
+    RARITY_COLORS,
     RARITY_LABELS,
     calculateTotalPoints,
     type Achievement
@@ -14,7 +14,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
+import {
     Trophy, Flame, Zap, BookOpen, Lock, Crown, Star, Target,
     Sprout, GraduationCap, Award, Languages, Globe, Library,
     Timer, Calendar, Sword, Play, Repeat, TrendingUp, Rocket, Cpu,
@@ -24,9 +24,11 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { PageLayout } from '@/components/page-layout';
+import { LucideProps } from 'lucide-react';
+import { ComponentType } from 'react';
 
 // Mapowanie ikon
-const Icons: Record<string, any> = {
+const Icons: Record<string, ComponentType<LucideProps>> = {
     Trophy, Flame, Zap, BookOpen, Crown, Star, Target,
     Sprout, GraduationCap, Award, Languages, Globe, Library,
     Timer, Calendar, Sword, Play, Repeat, TrendingUp, Rocket, Cpu,
@@ -34,7 +36,7 @@ const Icons: Record<string, any> = {
 };
 
 // Ikony kategorii
-const CategoryIcons: Record<string, any> = {
+const CategoryIcons: Record<string, ComponentType<LucideProps>> = {
     'Słownictwo': BookOpen,
     'Streak': Flame,
     'Aktywność': Target,
@@ -184,7 +186,7 @@ export default async function AchievementsPage() {
                 {achievementsByCategory.map(({ category, achievements: categoryAchievements }) => {
                     const CategoryIcon = CategoryIcons[category] || Trophy;
                     const categoryUnlocked = categoryAchievements.filter(a => unlockedMap.has(a.id)).length;
-                    
+
                     return (
                         <div key={category} className="space-y-4">
                             {/* Nagłówek kategorii */}
@@ -262,8 +264,8 @@ export default async function AchievementsPage() {
                                                             )}>
                                                                 {achievement.title}
                                                             </h4>
-                                                            <Badge 
-                                                                variant="secondary" 
+                                                            <Badge
+                                                                variant="secondary"
                                                                 className={cn(
                                                                     "text-xs shrink-0",
                                                                     isUnlocked ? rarityStyle.badge : "bg-muted text-muted-foreground"
@@ -312,8 +314,8 @@ export default async function AchievementsPage() {
                         <h4 className="font-semibold mb-4">Legenda rzadkości</h4>
                         <div className="flex flex-wrap gap-3">
                             {Object.entries(RARITY_LABELS).map(([key, label]) => (
-                                <Badge 
-                                    key={key} 
+                                <Badge
+                                    key={key}
                                     variant="secondary"
                                     className={cn("text-sm py-1.5 px-3", RARITY_COLORS[key as keyof typeof RARITY_COLORS].badge)}
                                 >

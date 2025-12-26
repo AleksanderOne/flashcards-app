@@ -36,8 +36,9 @@ export function FixCategoriesCard() {
         try {
             const res = await fixWordCategories();
             setResult(res);
-        } catch (err: any) {
-            setError(err.message || 'Wystąpił błąd podczas naprawy kategorii');
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Wystąpił błąd podczas naprawy kategorii';
+            setError(message);
         } finally {
             setLoading(false);
         }

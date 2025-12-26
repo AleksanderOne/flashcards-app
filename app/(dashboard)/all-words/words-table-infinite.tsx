@@ -137,7 +137,7 @@ export function WordsTableInfinite({
             } else {
                 toast.error(result.error || 'Błąd usuwania');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Wystąpił błąd');
         } finally {
             setActionLoading(null);

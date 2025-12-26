@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Keyboard, ImageIcon, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -54,7 +53,7 @@ export function ReviewCard({ reviewsByCategory, totalDueCount }: ReviewCardProps
 
     const handleStartReview = () => {
         const params = new URLSearchParams({ mode });
-        
+
         if (selectedCategory !== 'all') {
             // Wyodrębnienie poziomu i kategorii z klucza
             const [level, category] = selectedCategory.split(' - ');
@@ -66,8 +65,8 @@ export function ReviewCard({ reviewsByCategory, totalDueCount }: ReviewCardProps
     };
 
     // Obliczenie liczby słówek dla wybranej kategorii
-    const selectedCount = selectedCategory === 'all' 
-        ? totalDueCount 
+    const selectedCount = selectedCategory === 'all'
+        ? totalDueCount
         : reviewsByCategory[selectedCategory]?.length || 0;
 
     return (
@@ -124,16 +123,16 @@ export function ReviewCard({ reviewsByCategory, totalDueCount }: ReviewCardProps
                                 key={m.id}
                                 className={cn(
                                     "flex items-center p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors",
-                                    mode === m.id 
-                                        ? "border-amber-500 bg-amber-50 dark:bg-amber-900/20 ring-1 ring-amber-500" 
+                                    mode === m.id
+                                        ? "border-amber-500 bg-amber-50 dark:bg-amber-900/20 ring-1 ring-amber-500"
                                         : "border-slate-200 dark:border-slate-800"
                                 )}
                                 onClick={() => setMode(m.id)}
                             >
                                 <div className={cn(
                                     "p-2 rounded-full mr-4",
-                                    mode === m.id 
-                                        ? "bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-300" 
+                                    mode === m.id
+                                        ? "bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-300"
                                         : "bg-slate-100 text-slate-500 dark:bg-slate-800"
                                 )}>
                                     <m.icon className="w-5 h-5" />

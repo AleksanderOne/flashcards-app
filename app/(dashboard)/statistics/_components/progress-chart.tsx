@@ -50,8 +50,9 @@ export function ProgressChart({ data }: ProgressChartProps) {
                     }}
                     labelStyle={{ color: 'var(--foreground)' }}
                     itemStyle={{ color: 'var(--foreground)' }}
-                    formatter={(value: any, name: any) => [
-                        value,
+                    // @ts-expect-error Recharts Formatter typ jest wewnętrznie niespójny (value/name mogą być undefined)
+                    formatter={(value: number | undefined, name: string) => [
+                        value ?? 0,
                         name === 'cumulative' ? 'Łącznie słówek' : 'Nowe tego dnia'
                     ]}
                     labelFormatter={(label) => new Date(label).toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' })}
