@@ -75,11 +75,30 @@ export function StartLearningCard({ categoriesByLevel }: StartLearningCardProps)
         router.push(`/learn/session?${params.toString()}`);
     };
 
+    // Obliczenie ile nowych słówek pozostało do nauki dla wybranej kategorii
+    const newWordsRemaining = useMemo(() => {
+        if (!level) return null;
+        if (category === 'all') {
+            const cats = categoriesByLevel[level];
+            const total = Object.values(cats).reduce((sum, cat) => sum + cat.total, 0);
+            const learned = Object.values(cats).reduce((sum, cat) => sum + cat.learned, 0);
+            return total - learned;
+        } else {
+            const cat = categories[category];
+            return cat ? cat.total - cat.learned : 0;
+        }
+    }, [level, category, categoriesByLevel, categories]);
+
     return (
         <Card className="shadow-lg border-2 border-violet-100 dark:border-violet-900/50">
             <CardHeader>
-                <CardTitle className="text-2xl text-center">Rozpocznij Naukę</CardTitle>
-                <CardDescription className="text-center">skonfiguruj swoją sesję</CardDescription>
+                <CardTitle className="text-2xl text-center flex items-center justify-center gap-2">
+                    <Brain className="w-6 h-6 text-violet-600" />
+                    Nauka nowych słówek
+                </CardTitle>
+                <CardDescription className="text-center">
+                    Wybierz poziom i kategorię, aby uczyć się nowych słówek
+                </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
 
@@ -228,12 +247,29 @@ export function StartLearningCard({ categoriesByLevel }: StartLearningCardProps)
                     </div>
                 </div>
 
+                {/* Podsumowanie przed rozpoczęciem */}
+                {level && newWordsRemaining !== null && (
+                    <div className="bg-violet-50 dark:bg-violet-900/20 rounded-lg p-4 text-center border border-violet-200 dark:border-violet-800">
+                        <p className="text-sm text-muted-foreground mb-1">
+                            Nowe słówka do nauki:
+                        </p>
+                        <p className="text-3xl font-bold text-violet-600 dark:text-violet-400">
+                            {newWordsRemaining > 0 ? newWordsRemaining : '0'}
+                        </p>
+                        {newWordsRemaining === 0 && (
+                            <p className="text-sm text-green-600 dark:text-green-400 mt-2">
+                                ✓ Wszystkie słówka w tej kategorii nauczone!
+                            </p>
+                        )}
+                    </div>
+                )}
+
                 <Button
                     className="w-full h-12 text-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white shadow-lg shadow-violet-500/25"
                     onClick={handleStart}
-                    disabled={!level}
+                    disabled={!level || newWordsRemaining === 0}
                 >
-                    Rozpocznij sesję
+                    {newWordsRemaining === 0 ? 'Brak nowych słówek' : 'Rozpocznij naukę'}
                 </Button>
 
             </CardContent>

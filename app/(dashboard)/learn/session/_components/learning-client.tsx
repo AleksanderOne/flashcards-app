@@ -9,11 +9,61 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress';
 import { getImageForWord } from '@/lib/pixabay';
 import { submitAnswer } from '@/app/actions/learning';
-import { Volume2, VolumeXIcon, CheckCircle, XCircle, ArrowRight, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Volume2, VolumeXIcon, CheckCircle, XCircle, ArrowRight, Loader2, Image as ImageIcon, X, LogOut, Flame, Target } from 'lucide-react';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
+import { feedbackStyles } from '@/lib/colors';
 import Image from 'next/image';
 
 import { LevelType } from '@/lib/constants';
+
+// Komponent wskaźnika trudności
+function DifficultyBadge({ difficulty, errorCount, totalAttempts }: { 
+    difficulty: number; 
+    errorCount: number;
+    totalAttempts: number;
+}) {
+    const getDifficultyInfo = (d: number) => {
+        switch (d) {
+            case 1: return { label: 'Łatwe', color: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300', icon: '✓' };
+            case 2: return { label: 'Proste', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300', icon: '○' };
+            case 3: return { label: 'Średnie', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300', icon: '◐' };
+            case 4: return { label: 'Trudne', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300', icon: '●' };
+            case 5: return { label: 'Bardzo trudne', color: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300', icon: '🔥' };
+            default: return { label: 'Nieznane', color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300', icon: '?' };
+        }
+    };
+
+    const info = getDifficultyInfo(difficulty);
+    const accuracy = totalAttempts > 0 ? Math.round((1 - errorCount / totalAttempts) * 100) : 100;
+
+    return (
+        <div className="flex items-center gap-2">
+            <span className={cn(
+                "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                info.color
+            )}>
+                <span>{info.icon}</span>
+                <span>{info.label}</span>
+            </span>
+            {totalAttempts > 0 && (
+                <span className="text-xs text-muted-foreground">
+                    ({errorCount} błędów / {totalAttempts} prób • {accuracy}%)
+                </span>
+            )}
+        </div>
+    );
+}
 
 interface Word {
     id: string; // opcjonalne, głównie jako klucz
@@ -22,15 +72,21 @@ interface Word {
     level: LevelType;
     category: string;
     imageUrl?: string | null;
+    // Dane o trudności (opcjonalne, tylko dla powtórek)
+    difficulty?: number; // 1-5 (1=łatwe, 5=trudne)
+    errorCount?: number;
+    totalAttempts?: number;
+    easiness?: number;
 }
 
 interface LearningClientProps {
     initialWords: Word[];
     mode: 'pl_to_en_text' | 'en_to_pl_text' | 'pl_to_en_quiz' | 'en_to_pl_quiz';
     userName: string;
+    sessionType?: 'learn' | 'review'; // Typ sesji: nauka nowych słówek lub powtórka
 }
 
-export function LearningClient({ initialWords, mode, userName }: LearningClientProps) {
+export function LearningClient({ initialWords, mode, userName, sessionType = 'learn' }: LearningClientProps) {
     const router = useRouter();
     const [words, setWords] = useState<Word[]>(initialWords);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -150,7 +206,10 @@ export function LearningClient({ initialWords, mode, userName }: LearningClientP
         }
     }, [input, answerWord, feedback, isChecking, currentWord, handleCheck]);
 
-    const handleNext = () => {
+    const handleNext = useCallback(() => {
+        // Zapobiega wielokrotnemu wywołaniu gdy sesja już zakończona
+        if (sessionComplete) return;
+        
         // Anulowanie automatycznego przejścia przy ręcznej interakcji
         if (nextTimeoutRef.current) {
             clearTimeout(nextTimeoutRef.current);
@@ -167,13 +226,15 @@ export function LearningClient({ initialWords, mode, userName }: LearningClientP
         } else {
             setSessionComplete(true);
         }
-    };
+    }, [currentIndex, words.length, sessionComplete]);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !sessionComplete) {
+            e.preventDefault();
+            e.stopPropagation(); // Zapobiega duplikowaniu przez globalny listener
             if (feedback) {
                 handleNext();
-            } else {
+            } else if (input.trim()) {
                 handleCheck();
             }
         }
@@ -182,6 +243,9 @@ export function LearningClient({ initialWords, mode, userName }: LearningClientP
     // Globalna obsługa klawiszy Spacja i Enter podczas wyświetlania wyniku
     useEffect(() => {
         const handleGlobalKeyDown = (e: KeyboardEvent) => {
+            // Nie reaguj gdy sesja jest zakończona
+            if (sessionComplete) return;
+            
             if (feedback !== null) {
                 if (e.code === 'Space' || e.key === 'Enter') {
                     e.preventDefault();
@@ -192,7 +256,7 @@ export function LearningClient({ initialWords, mode, userName }: LearningClientP
 
         window.addEventListener('keydown', handleGlobalKeyDown);
         return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-    }, [feedback, handleNext]);
+    }, [feedback, handleNext, sessionComplete]);
 
     if (sessionComplete) {
         const total = results.correct + results.incorrect;
@@ -201,21 +265,21 @@ export function LearningClient({ initialWords, mode, userName }: LearningClientP
         return (
             <div className="w-full max-w-2xl mx-auto space-y-6 py-8">
                 {/* Główna karta z gratulacjami */}
-                <Card className="border-2 border-green-500/30 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 shadow-xl">
+                <Card className="border-2 border-success/30 bg-gradient-to-br from-success-muted to-accent-emerald-muted shadow-xl">
                     <CardContent className="pt-8 pb-8 space-y-6">
                         {/* Ikona sukcesu */}
                         <div className="flex justify-center">
-                            <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-6xl shadow-lg">
+                            <div className="w-24 h-24 bg-gradient-to-br from-success to-accent-emerald rounded-full flex items-center justify-center text-6xl shadow-lg">
                                 🎉
                             </div>
                         </div>
 
                         {/* Tytuł */}
                         <div className="text-center space-y-2">
-                            <h2 className="text-3xl md:text-4xl font-bold text-green-900 dark:text-green-100">
+                            <h2 className="text-3xl md:text-4xl font-bold text-success-foreground">
                                 Sesja ukończona!
                             </h2>
-                            <p className="text-lg text-green-700 dark:text-green-300">
+                            <p className="text-lg text-success-foreground/80">
                                 Ukończyłeś wszystkie {total} {total === 1 ? 'słówko' : total < 5 ? 'słówka' : 'słówek'} z tej sesji
                             </p>
                         </div>
@@ -223,31 +287,31 @@ export function LearningClient({ initialWords, mode, userName }: LearningClientP
                         {/* Statystyki */}
                         <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
                             {/* Poprawne */}
-                            <div className="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-md border border-green-200 dark:border-green-800">
-                                <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                            <div className="bg-card rounded-xl p-4 shadow-md border border-success">
+                                <div className="text-3xl font-bold text-success">
                                     {results.correct}
                                 </div>
-                                <div className="text-sm text-green-700 dark:text-green-300 font-medium mt-1">
+                                <div className="text-sm text-success-foreground font-medium mt-1">
                                     Poprawne
                                 </div>
                             </div>
 
                             {/* Dokładność */}
-                            <div className="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-md border border-blue-200 dark:border-blue-800">
-                                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                            <div className="bg-card rounded-xl p-4 shadow-md border border-info">
+                                <div className="text-3xl font-bold text-info">
                                     {accuracy}%
                                 </div>
-                                <div className="text-sm text-blue-700 dark:text-blue-300 font-medium mt-1">
+                                <div className="text-sm text-info-foreground font-medium mt-1">
                                     Dokładność
                                 </div>
                             </div>
 
                             {/* Błędne */}
-                            <div className="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-md border border-red-200 dark:border-red-800">
-                                <div className="text-3xl font-bold text-red-600 dark:text-red-400">
+                            <div className="bg-card rounded-xl p-4 shadow-md border border-error">
+                                <div className="text-3xl font-bold text-error">
                                     {results.incorrect}
                                 </div>
-                                <div className="text-sm text-red-700 dark:text-red-300 font-medium mt-1">
+                                <div className="text-sm text-error-foreground font-medium mt-1">
                                     Błędne
                                 </div>
                             </div>
@@ -276,11 +340,11 @@ export function LearningClient({ initialWords, mode, userName }: LearningClientP
                 {/* Akcje */}
                 <div className="flex flex-col gap-3">
                     <Button
-                        onClick={() => router.push('/learn')}
+                        onClick={() => router.push(sessionType === 'review' ? '/review' : '/learn')}
                         className="w-full h-14 text-lg shadow-lg"
                         size="lg"
                     >
-                        🏠 Wróć do wyboru poziomu
+                        {sessionType === 'review' ? '🔄 Wróć do powtórek' : '🏠 Wróć do wyboru poziomu'}
                     </Button>
                     <Button
                         onClick={() => router.push('/statistics')}
@@ -302,12 +366,22 @@ export function LearningClient({ initialWords, mode, userName }: LearningClientP
     return (
         <div className="w-full max-w-2xl mx-auto space-y-6">
 
-            {/* Pasek postępu i przełącznik dźwięku */}
+            {/* Pasek postępu i kontrolki */}
             <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm text-muted-foreground">
-                    <span>Słówko {currentIndex + 1} z {words.length}</span>
-                    <div className="flex items-center gap-4">
-                        <span>{Math.round(progress)}%</span>
+                    <div className="flex items-center gap-3">
+                        <span>Słówko {currentIndex + 1} z {words.length}</span>
+                        {/* Wskaźnik trudności (tylko dla powtórek) */}
+                        {sessionType === 'review' && currentWord.difficulty !== undefined && (
+                            <DifficultyBadge 
+                                difficulty={currentWord.difficulty} 
+                                errorCount={currentWord.errorCount || 0}
+                                totalAttempts={currentWord.totalAttempts || 0}
+                            />
+                        )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="mr-2">{Math.round(progress)}%</span>
                         <Button
                             size="sm"
                             variant={soundEnabled ? "default" : "outline"}
@@ -326,6 +400,50 @@ export function LearningClient({ initialWords, mode, userName }: LearningClientP
                                 </>
                             )}
                         </Button>
+                        
+                        {/* Przycisk przerwania nauki */}
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="gap-2 border-error/30 bg-error/5 text-error hover:bg-error/10 hover:border-error/50"
+                                >
+                                    <X className="w-4 h-4" />
+                                    <span className="hidden sm:inline">Zakończ</span>
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle className="flex items-center gap-2">
+                                        <LogOut className="w-5 h-5 text-warning" />
+                                        Przerwać naukę?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription className="space-y-2">
+                                        <p>
+                                            Ukończyłeś <span className="font-semibold text-foreground">{currentIndex}</span> z{' '}
+                                            <span className="font-semibold text-foreground">{words.length}</span> słówek w tej sesji.
+                                        </p>
+                                        <p>
+                                            Dotychczasowy postęp: <span className="text-success font-medium">{results.correct} poprawnych</span>,{' '}
+                                            <span className="text-error font-medium">{results.incorrect} błędnych</span>
+                                        </p>
+                                        <p className="text-sm">
+                                            Twój dotychczasowy postęp został zapisany. Czy na pewno chcesz zakończyć sesję?
+                                        </p>
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Kontynuuj naukę</AlertDialogCancel>
+                                    <AlertDialogAction
+                                        onClick={() => router.push(sessionType === 'review' ? '/review' : '/learn')}
+                                        className="bg-error hover:bg-error/90 text-error-foreground"
+                                    >
+                                        Zakończ sesję
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </div>
                 </div>
                 <Progress value={progress} className="h-2" />
@@ -333,8 +451,8 @@ export function LearningClient({ initialWords, mode, userName }: LearningClientP
 
             <Card className={cn(
                 "border-2 transition-all duration-300",
-                feedback === 'correct' ? "border-green-500 bg-green-50/50 dark:bg-green-950/30 shadow-green-500/20 shadow-lg" :
-                    feedback === 'incorrect' ? "border-red-500 bg-red-50/50 dark:bg-red-950/30 shadow-red-500/20 shadow-lg" :
+                feedback === 'correct' ? feedbackStyles.correct.card :
+                    feedback === 'incorrect' ? feedbackStyles.incorrect.card :
                         "border-border/50 shadow-xl hover:shadow-2xl"
             )}>
                 <CardHeader className="text-center pb-2">
@@ -346,9 +464,9 @@ export function LearningClient({ initialWords, mode, userName }: LearningClientP
                 <CardContent className="space-y-6 pt-6">
 
                     {/* Obrazek (wsparcie wizualne) */}
-                    <div className="relative w-full h-56 md:h-72 rounded-2xl overflow-hidden bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-950/30 dark:to-fuchsia-950/30 flex items-center justify-center shadow-lg">
+                    <div className="relative w-full h-56 md:h-72 rounded-2xl overflow-hidden bg-gradient-to-br from-primary/15 via-accent-fuchsia/10 to-accent-violet/15 dark:from-primary/25 dark:via-accent-fuchsia/15 dark:to-accent-violet/25 flex items-center justify-center shadow-lg">
                         {imageLoading ? (
-                            <Loader2 className="w-10 h-10 animate-spin text-violet-500" />
+                            <Loader2 className="w-10 h-10 animate-spin text-primary" />
                         ) : currentImage ? (
                             <>
                                 <Image
@@ -363,7 +481,7 @@ export function LearningClient({ initialWords, mode, userName }: LearningClientP
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                             </>
                         ) : (
-                            <ImageIcon className="w-16 h-16 text-violet-300 dark:text-violet-700" />
+                            <ImageIcon className="w-16 h-16 text-primary/40" />
                         )}
                     </div>
 
@@ -400,8 +518,8 @@ export function LearningClient({ initialWords, mode, userName }: LearningClientP
                             placeholder={isPlToEn ? "Wpisz po angielsku..." : "Wpisz po polsku..."}
                             className={cn(
                                 "h-14 text-xl text-center shadow-sm",
-                                feedback === 'correct' && "border-green-500 text-green-600 bg-white dark:bg-black",
-                                feedback === 'incorrect' && "border-red-500 text-red-600 bg-white dark:bg-black"
+                                feedback === 'correct' && "border-success text-success bg-card",
+                                feedback === 'incorrect' && "border-error text-error bg-card"
                             )}
                             autoComplete="off"
                             autoFocus
@@ -414,7 +532,7 @@ export function LearningClient({ initialWords, mode, userName }: LearningClientP
                                     animate={{ opacity: 1, y: 0 }}
                                     className={cn(
                                         "mt-4 p-4 rounded-lg flex items-center justify-center gap-3",
-                                        feedback === 'correct' ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                                        feedback === 'correct' ? feedbackStyles.correct.badge : feedbackStyles.incorrect.badge
                                     )}
                                 >
                                     {feedback === 'correct' ? (
@@ -455,7 +573,7 @@ export function LearningClient({ initialWords, mode, userName }: LearningClientP
                             size="lg"
                             className={cn(
                                 "w-full h-12 text-lg font-semibold",
-                                feedback === 'correct' ? "bg-green-600 hover:bg-green-700 text-white" : "bg-red-600 hover:bg-red-700 text-white"
+                                feedback === 'correct' ? "bg-success hover:bg-success/90 text-success-foreground" : "bg-error hover:bg-error/90 text-error-foreground"
                             )}
                             onClick={handleNext}
                         >

@@ -133,7 +133,7 @@ export default function ChallengeClient({ availableWords }: ChallengeClientProps
     if (words.length < 4) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 animate-in fade-in zoom-in duration-500">
-                <Card className="max-w-md w-full border-none shadow-2xl bg-gradient-to-br from-white to-gray-50 dark:from-zinc-900 dark:to-zinc-950">
+                <Card className="max-w-md w-full border-none shadow-2xl bg-gradient-to-br from-white to-gray-50 dark:from-card dark:to-background">
                     <CardContent className="flex flex-col items-center p-8 text-center space-y-4">
                         <div className="w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mb-2">
                             <AlertCircle className="w-8 h-8 text-orange-600 dark:text-orange-500" />
@@ -164,7 +164,7 @@ export default function ChallengeClient({ availableWords }: ChallengeClientProps
                         exit={{ opacity: 0, y: -20 }}
                         className="w-full max-w-md"
                     >
-                        <Card className="border-none shadow-2xl bg-gradient-to-br from-white to-gray-50 dark:from-zinc-900 dark:to-zinc-950 overflow-hidden">
+                        <Card className="border-none shadow-2xl bg-gradient-to-br from-white to-gray-50 dark:from-card dark:to-background overflow-hidden">
                             <div className="h-2 w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500" />
                             <CardContent className="flex flex-col items-center p-8 space-y-8">
                                 <div className="text-center space-y-2">
@@ -194,7 +194,7 @@ export default function ChallengeClient({ availableWords }: ChallengeClientProps
                                                 className={cn(
                                                     "h-12 text-lg font-medium transition-all duration-200",
                                                     durationMinutes === mins
-                                                        ? "bg-purple-600 hover:bg-purple-700 shadow-lg shadow-purple-500/25 ring-2 ring-purple-600 ring-offset-2 dark:ring-offset-zinc-950 scale-105"
+                                                        ? "bg-purple-600 hover:bg-purple-700 shadow-lg shadow-purple-500/25 ring-2 ring-purple-600 ring-offset-2 dark:ring-offset-background scale-105"
                                                         : "hover:bg-purple-50 dark:hover:bg-purple-900/10 hover:border-purple-200"
                                                 )}
                                             >
@@ -225,7 +225,7 @@ export default function ChallengeClient({ availableWords }: ChallengeClientProps
                         className="w-full max-w-2xl space-y-8"
                     >
                         {/* Top Bar */}
-                        <div className="flex items-center justify-between p-4 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xl rounded-2xl shadow-sm border border-white/20">
+                        <div className="flex items-center justify-between p-4 bg-white/50 dark:bg-card/50 backdrop-blur-xl rounded-2xl shadow-sm border border-white/20 dark:border-border/20">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                                     <Timer className="w-5 h-5 text-purple-600 dark:text-purple-400" />
@@ -247,9 +247,9 @@ export default function ChallengeClient({ availableWords }: ChallengeClientProps
                         </div>
 
                         {/* Question Card */}
-                        <Card className="border-none shadow-2xl bg-white dark:bg-zinc-900 overflow-hidden relative">
+                        <Card className="border-none shadow-2xl bg-white dark:bg-card overflow-hidden relative">
                             {/* Progress bar for feedback timing or just aesthetic */}
-                            <div className="absolute top-0 left-0 right-0 h-1 bg-zinc-100 dark:bg-zinc-800">
+                            <div className="absolute top-0 left-0 right-0 h-1 bg-zinc-100 dark:bg-muted">
                                 <motion.div
                                     className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
                                     initial={{ width: "100%" }}
@@ -262,7 +262,7 @@ export default function ChallengeClient({ availableWords }: ChallengeClientProps
                                 <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest mb-4">
                                     Przetłumacz na polski
                                 </span>
-                                <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-center bg-clip-text text-transparent bg-gradient-to-b from-zinc-800 to-zinc-500 dark:from-white dark:to-zinc-400 mb-8 max-w-full break-words leading-tight">
+                                <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-center bg-clip-text text-transparent bg-gradient-to-b from-foreground to-muted-foreground mb-8 max-w-full break-words leading-tight">
                                     {currentQuestion.word.english}
                                 </h2>
 
@@ -321,7 +321,7 @@ export default function ChallengeClient({ availableWords }: ChallengeClientProps
                         animate={{ opacity: 1, scale: 1 }}
                         className="w-full max-w-md"
                     >
-                        <Card className="border-none shadow-2xl bg-gradient-to-br from-white to-gray-50 dark:from-zinc-900 dark:to-zinc-950 overflow-hidden text-center">
+                        <Card className="border-none shadow-2xl bg-gradient-to-br from-white to-gray-50 dark:from-card dark:to-background overflow-hidden text-center">
                             <div className="h-2 w-full bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500" />
                             <CardContent className="flex flex-col items-center p-8 space-y-8">
                                 <div className="relative">
@@ -335,12 +335,12 @@ export default function ChallengeClient({ availableWords }: ChallengeClientProps
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4 w-full">
-                                    <div className="p-4 rounded-xl bg-zinc-100 dark:bg-zinc-900/50 flex flex-col items-center justify-center">
+                                    <div className="p-4 rounded-xl bg-zinc-100 dark:bg-muted/50 flex flex-col items-center justify-center">
                                         <span className="text-4xl font-bold text-green-600 dark:text-green-400">{score}</span>
                                         <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium mt-1">Poprawne</span>
                                     </div>
-                                    <div className="p-4 rounded-xl bg-zinc-100 dark:bg-zinc-900/50 flex flex-col items-center justify-center">
-                                        <span className="text-4xl font-bold text-zinc-700 dark:text-zinc-300">
+                                    <div className="p-4 rounded-xl bg-zinc-100 dark:bg-muted/50 flex flex-col items-center justify-center">
+                                        <span className="text-4xl font-bold text-foreground">
                                             {totalAttempts > 0 ? Math.round((score / totalAttempts) * 100) : 0}%
                                         </span>
                                         <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium mt-1">Dokładność</span>
@@ -350,7 +350,7 @@ export default function ChallengeClient({ availableWords }: ChallengeClientProps
                                 <Button
                                     onClick={() => setPhase('setup')}
                                     size="lg"
-                                    className="w-full h-12 text-lg font-medium bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200"
+                                    className="w-full h-12 text-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90"
                                 >
                                     <RotateCcw className="w-5 h-5 mr-2" />
                                     Zagraj Ponownie
