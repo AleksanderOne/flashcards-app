@@ -132,10 +132,183 @@ npx --no -- commitlint --edit "$1"
 npx playwright install
 ```
 
-Skonfiguruj `vitest.config.ts` w zależności od frameworka (np. React/Next.js).
+### `vitest.config.ts`
 
-## 6. Weryfikacja
+> **Ważne:** Zwróć uwagę na sekcję `exclude` w `coverage`. W `centrum-logowania-app` wyłączone z testów jednostkowych (coverage) są pliki Next.js (`page.tsx`, `layout.tsx`), konfiguracja UI (`components/ui`), API oraz baza danych. Dzięki temu wymaganie 100% pokrycia dotyczy tylko logiki biznesowej i użytecznych komponentów, a nie boilerplate'u frameworka.
 
-1. Spróbuj zrobić commit ze złą wiadomością (np. "fix sth") -> powinno zostać odrzucone przez `commitlint`.
-2. Spróbuj zrobić commit z poprawną wiadomością (np. "fix: poprawa logowania") -> powinny uruchomić się testy jednostkowe.
-3. Spróbuj zrobić push -> powinny uruchomić się testy coverage, build i e2e.
+```typescript
+import { defineConfig, configDefaults } from "vitest/config";
+import react from "@vitejs/plugin-react";
+import { resolve } from "path";
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: "./vitest.setup.ts",
+    alias: {
+      "@": resolve(__dirname, "./src"),
+    },
+    exclude: [...configDefaults.exclude, "tests/**"],
+
+    coverage: {
+      provider: "v8",
+      enabled: false, // Włączane flagą --coverage
+      reporter: ["text", "text-summary", "html", "lcov", "json-summary"],
+      reportsDirectory: "./coverage",
+
+      // Progi pokrycia - 100% dla wszystkich metryk!
+      thresholds: {
+        statements: 100,
+        branches: 100,
+        functions: 100,
+        lines: 100,
+        perFile: true, // Wymagaj 100% dla KAŻDEGO pliku z osobna
+      },
+
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: [
+        "**/*.test.{ts,tsx}",
+        "**/*.spec.{ts,tsx}",
+        "**/tests/**",
+        "**/*.config.{ts,tsx}",
+        "**/schemas/**",
+        "**/types/**",
+        "**/layout.tsx",
+        "**/loading.tsx",
+        "**/error.tsx",
+        "**/not-found.tsx",
+        "**/global-error.tsx",
+        "**/app/**/page.tsx", // Strony testowane przez E2E
+        "**/app/page.tsx",
+        "**/actions/**",
+        "**/auth.ts",
+        "**/auth.config.ts",
+        "**/middleware.ts",
+        "**/proxy.ts",
+        "**/components/ui/**", // Komponenty Shadcn UI
+        "**/theme-provider.tsx",
+        "**/mode-toggle.tsx",
+        "**/api/**", // API route'y
+        "**/db/**", // Konfiguracja bazy danych
+      ],
+      skipFull: false,
+      clean: true,
+    },
+  },
+});
+```
+
+### `vitest.setup.ts`
+
+```typescript
+import "@testing-library/jest-dom";
+```
+
+### `playwright.config.ts`
+
+```typescript
+import { defineConfig, devices } from "@playwright/test";
+
+// Zmienne środowiskowe dla testów E2E
+process.env.AUTH_SECRET =
+  process.env.AUTH_SECRET || "test-secret-for-e2e-tests-only";
+process.env.NEXTAUTH_SECRET =
+  process.env.NEXTAUTH_SECRET || "test-secret-for-e2e-tests-only";
+process.env.AUTH_TRUST_HOST = "true";
+
+export default defineConfig({
+  testDir: "./tests",
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: "html",
+  use: {
+    baseURL: "http://localhost:3000",
+    trace: "on-first-retry",
+  },
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+    },
+  ],
+  webServer: {
+    command: "npm run dev",
+    url: "http://localhost:3000",
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
+    env: {
+      AUTH_SECRET: process.env.AUTH_SECRET || "test-secret-for-e2e-tests-only",
+      NEXTAUTH_SECRET:
+        process.env.NEXTAUTH_SECRET || "test-secret-for-e2e-tests-only",
+      AUTH_TRUST_HOST: "true",
+    },
+  },
+});
+```
+
+## 7. Alternatywny Workflow: PLATYNOWY STANDARD (High Security)
+
+Jeśli projekt wymaga najwyższego poziomu bezpieczeństwa i niezawodności (jak w przypadku systemów logowania), samo pokrycie kodu (Coverage 100%) to za mało. Możesz mieć testy, które pokrywają kod, ale niczego nie sprawdzają.
+
+Rozwiązaniem jest **Testowanie Mutacyjne (Mutation Testing)** oraz automatyczny **Audyt Bezpieczeństwa**.
+
+### 1. Zainstaluj dodatkowe narzędzia
+
+```bash
+npm install -D @stryker-mutator/core @stryker-mutator/vitest-runner eslint-plugin-security eslint-plugin-no-secrets
+```
+
+### 2. Skonfiguruj `stryker.config.json`
+
+Stryker celowo wprowadza błędy w kodzie (mutanty), aby sprawdzić, czy twoje testy je wykryją (zabiją).
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker/master/packages/core/schema/stryker-schema.json",
+  "packageManager": "npm",
+  "testRunner": "vitest",
+  "reporters": ["html", "clear-text", "progress"],
+  "htmlReporter": { "fileName": "reports/mutation/html/index.html" },
+  "mutate": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "!src/**/*.test.{ts,tsx}",
+    "!src/components/ui/**",
+    "!src/app/**/page.tsx",
+    "!src/api/**"
+  ],
+  "thresholds": { "high": 80, "low": 60, "break": 50 }
+}
+```
+
+### 3. Zaktualizuj `.husky/pre-push`
+
+W wersji "Platinum" przed wypchnięciem kodu sprawdzamy nie tylko testy, ale też bezpieczeństwo pakietów.
+
+```sh
+#!/bin/sh
+echo "🛡️ Skanowanie podatności (npm audit)..."
+npm audit --audit-level=high
+if [ $? -ne 0 ]; then
+    echo "❌ Znaleziono luki bezpieczeństwa! Zaktualizuj pakiety."
+    exit 1
+fi
+
+echo "📊 Uruchamiam testy i coverage..."
+npm run test:coverage
+
+echo "🔨 Budowanie aplikacji..."
+npm run build
+```
+
+### 4. Kiedy stosować ten standard?
+
+Ten workflow jest bardziej czasochłonny (npm audit i testy trwają dłużej), ale niezbędny w projektach:
+
+1.  Przetwarzających dane osobowe (RODO/GDPR).
+2.  Obsługujących płatności.
+3.  Będących centralnymi punktami uwierzytelniania (jak `centrum-logowania-app`).
