@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const levels = searchParams.get('levels')?.split(',').filter(Boolean) || [];
 
     try {
-        let result: any[] = [];
+        let result: unknown[] = [];
 
         if (filterType === 'learning') {
             // Filtrowanie słówek w trakcie nauki (posiadających wpis w wordProgress)

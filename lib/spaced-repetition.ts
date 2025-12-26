@@ -33,7 +33,8 @@ export interface SM2Output {
 }
 
 export function calculateSM2(input: SM2Input): SM2Output {
-    let { quality, repetitions, easiness, interval } = input;
+    const { repetitions, easiness, interval } = input;
+    let quality = input.quality;
 
     // Walidacja: ograniczenie quality do zakresu 0-5
     quality = Math.max(0, Math.min(5, Math.round(quality)));

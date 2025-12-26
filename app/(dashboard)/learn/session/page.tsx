@@ -6,6 +6,7 @@ import { eq, and, isNull } from 'drizzle-orm';
 import { LearningClient } from './_components/learning-client';
 import { Card, CardContent } from '@/components/ui/card';
 import { PageLayout } from '@/components/page-layout';
+import { LevelType } from '@/lib/constants';
 
 interface SessionPageProps {
     searchParams: Promise<{
@@ -28,7 +29,7 @@ export default async function SessionPage(props: SessionPageProps) {
     const userId: string = session.user.id;
     const level = searchParams.level;
     const category = searchParams.category;
-    const mode = (searchParams.mode || 'pl_to_en_text') as any;
+    const mode = (searchParams.mode || 'pl_to_en_text') as 'pl_to_en_text' | 'en_to_pl_text' | 'pl_to_en_quiz' | 'en_to_pl_quiz';
 
     if (!level) {
         redirect('/learn');
@@ -37,7 +38,7 @@ export default async function SessionPage(props: SessionPageProps) {
     // NAUKA: Pobranie TYLKO nowych słówek (bez powtórek)
     // Słówka, które nie posiadają jeszcze postępu dla tego użytkownika
     // Powtórki są obsługiwane w osobnym widoku /review
-    
+
     const newWordsQuery = db
         .select({
             english: words.english,
@@ -57,7 +58,7 @@ export default async function SessionPage(props: SessionPageProps) {
         .where(
             and(
                 isNull(wordProgress.id), // Brak postępu oznacza nowe słówko
-                level ? eq(words.level, level as any) : undefined,
+                level ? eq(words.level, level as LevelType) : undefined,
                 category ? eq(words.category, category) : undefined
             )
         )

@@ -48,7 +48,7 @@ export function FixCategoriesCard() {
             <CardHeader>
                 <CardTitle>Naprawa Kategorii Słówek</CardTitle>
                 <CardDescription>
-                    Przepisz słówka z kategorii "General" do właściwych kategorii na podstawie WORD_DATABASE
+                    Przepisz słówka z kategorii &quot;General&quot; do właściwych kategorii na podstawie WORD_DATABASE
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

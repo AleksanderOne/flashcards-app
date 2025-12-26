@@ -53,7 +53,8 @@ export async function updateUserName(rawName: unknown): Promise<ActionResult> {
  * mógł być zmieniony lokalnie, użytkownik straciłby dostęp
  * do swojego konta po ponownym zalogowaniu przez SSO.
  */
-export async function updateUserEmail(_email: string): Promise<ActionResult> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function updateUserEmail(_rawEmail: string): Promise<ActionResult> {
     return {
         success: false,
         error: 'Zmiana adresu email jest możliwa tylko w centrum logowania. Po zmianie w centrum, email zostanie automatycznie zaktualizowany przy następnym logowaniu.'

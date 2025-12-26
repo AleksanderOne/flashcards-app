@@ -2,7 +2,7 @@
 
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db/drizzle';
-import { users, learningSessions, wordProgress, achievements, userStats } from '@/lib/db/schema';
+import { learningSessions, wordProgress, achievements, userStats } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 

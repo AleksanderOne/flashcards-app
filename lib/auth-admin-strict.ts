@@ -6,7 +6,7 @@
  */
 
 import { auth } from './auth';
-import { getSSOSession, verifySessionWithCenter } from './sso-client';
+import { getSSOSession } from './sso-client';
 
 /**
  * Weryfikacja sesji admina z fail-closed behavior.

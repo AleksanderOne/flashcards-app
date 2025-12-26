@@ -11,7 +11,6 @@ import {
 import {
     createUserSchema,
     updateNameSchema,
-    userIdSchema,
     userRoleSchema
 } from '@/lib/validations/user';
 

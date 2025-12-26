@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, useInView, useAnimation, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
+import { motion, useInView, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import { useRef, useEffect, useState, useActionState } from 'react';
 import { ChevronDown, ChevronUp, Send, Loader2, CheckCircle, Mail, Phone, User, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,8 +22,8 @@ export function FloatingNav({ children, className }: { children: React.ReactNode
         <nav
             className={cn(
                 "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-                isScrolled 
-                    ? "bg-background/95 backdrop-blur-lg shadow-lg shadow-violet-500/5 border-b border-border/50" 
+                isScrolled
+                    ? "bg-background/95 backdrop-blur-lg shadow-lg shadow-violet-500/5 border-b border-border/50"
                     : "bg-background/80 backdrop-blur-md border-b border-border/40",
                 className
             )}
@@ -41,11 +41,11 @@ export function FloatingNav({ children, className }: { children: React.ReactNode
 }
 
 // Animowana sekcja z efektem wejścia
-export function AnimatedSection({ 
-    children, 
+export function AnimatedSection({
+    children,
     className = '',
-    direction = 'up' 
-}: { 
+    direction = 'up'
+}: {
     children: React.ReactNode;
     className?: string;
     direction?: 'up' | 'down' | 'left' | 'right';
@@ -74,12 +74,12 @@ export function AnimatedSection({
 }
 
 // Animowany licznik
-export function AnimatedCounter({ 
-    end, 
-    suffix = '', 
-    label, 
-    icon 
-}: { 
+export function AnimatedCounter({
+    end,
+    suffix = '',
+    label,
+    icon
+}: {
     end: number;
     suffix?: string;
     label: string;
@@ -130,10 +130,10 @@ export function AnimatedCounter({
 }
 
 // Animowana karta funkcji
-export function AnimatedFeatureCard({ 
-    children, 
-    delay = 0 
-}: { 
+export function AnimatedFeatureCard({
+    children,
+    delay = 0
+}: {
     children: React.ReactNode;
     delay?: number;
 }) {
@@ -145,10 +145,10 @@ export function AnimatedFeatureCard({
             ref={ref}
             initial={{ y: 40, opacity: 0 }}
             animate={isInView ? { y: 0, opacity: 1 } : { y: 40, opacity: 0 }}
-            transition={{ 
-                duration: 0.6, 
-                delay, 
-                ease: [0.25, 0.4, 0.25, 1] 
+            transition={{
+                duration: 0.6,
+                delay,
+                ease: [0.25, 0.4, 0.25, 1]
             }}
         >
             {children}
@@ -176,11 +176,11 @@ export function AnimatedHero({ children }: { children: React.ReactNode }) {
 }
 
 // Pływający element dekoracyjny
-export function FloatingElement({ 
-    children, 
-    className = '', 
-    delay = 0 
-}: { 
+export function FloatingElement({
+    children,
+    className = '',
+    delay = 0
+}: {
     children: React.ReactNode;
     className?: string;
     delay?: number;
@@ -189,9 +189,9 @@ export function FloatingElement({
         <motion.div
             className={className}
             initial={{ y: 20, opacity: 0 }}
-            animate={{ 
+            animate={{
                 y: [0, -10, 0],
-                opacity: 1 
+                opacity: 1
             }}
             transition={{
                 y: {
@@ -279,10 +279,10 @@ export function ParallaxBackground() {
 }
 
 // Animowana opinia
-export function AnimatedTestimonial({ 
-    children, 
-    delay = 0 
-}: { 
+export function AnimatedTestimonial({
+    children,
+    delay = 0
+}: {
     children: React.ReactNode;
     delay?: number;
 }) {
@@ -294,10 +294,10 @@ export function AnimatedTestimonial({
             ref={ref}
             initial={{ y: 50, opacity: 0, rotateX: 10 }}
             animate={isInView ? { y: 0, opacity: 1, rotateX: 0 } : { y: 50, opacity: 0, rotateX: 10 }}
-            transition={{ 
-                duration: 0.7, 
-                delay, 
-                ease: [0.25, 0.4, 0.25, 1] 
+            transition={{
+                duration: 0.7,
+                delay,
+                ease: [0.25, 0.4, 0.25, 1]
             }}
             className="h-full"
         >
@@ -595,17 +595,17 @@ export function SectionIndicator() {
 
         // Znajdź aktualną sekcję
         const scrollPosition = window.scrollY + window.innerHeight / 3;
-        
+
         for (let i = sections.length - 1; i >= 0; i--) {
             const section = sections[i];
-            const element = section.id === 'hero' 
-                ? document.querySelector('section') 
+            const element = section.id === 'hero'
+                ? document.querySelector('section')
                 : document.getElementById(section.id);
-            
+
             if (element) {
                 const rect = element.getBoundingClientRect();
                 const top = rect.top + window.scrollY;
-                
+
                 if (scrollPosition >= top) {
                     setActiveSection(section.id);
                     break;
@@ -651,7 +651,7 @@ export function SectionIndicator() {
                             >
                                 {section.label}
                             </motion.span>
-                            
+
                             {/* Kropka */}
                             <motion.div
                                 className={cn(
@@ -667,7 +667,7 @@ export function SectionIndicator() {
                             />
                         </button>
                     ))}
-                    
+
                     {/* Linia łącząca kropki */}
                     <div className="absolute right-[4.5px] top-1 bottom-1 w-[1px] bg-gradient-to-b from-transparent via-muted-foreground/20 to-transparent -z-10" />
                 </motion.div>

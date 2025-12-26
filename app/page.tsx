@@ -3,20 +3,18 @@ import { auth } from '@/lib/auth';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { 
-    GraduationCap, 
-    Brain, 
-    Trophy, 
-    TrendingUp, 
-    Keyboard, 
-    Image as ImageIcon, 
-    Volume2, 
-    Flame, 
-    Target, 
-    CheckCircle, 
+import {
+    Brain,
+    Trophy,
+    TrendingUp,
+    Keyboard,
+    Image as ImageIcon,
+    Volume2,
+    Flame,
+    Target,
+    CheckCircle,
     Zap,
     BookOpen,
-    BarChart3,
     Sparkles,
     Clock,
     Users,
@@ -25,15 +23,10 @@ import {
     Play,
     ChevronDown,
     Mail,
-    Phone,
-    User,
     MessageSquare,
-    Send,
     Shield,
     Globe,
-    Rocket,
     Heart,
-    Award,
     Lightbulb,
     RefreshCw
 } from 'lucide-react';
@@ -56,7 +49,7 @@ export default async function HomePage() {
         <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 dark:from-gray-950 dark:via-purple-950 dark:to-violet-950 overflow-x-hidden">
             {/* Animowane tło z cząsteczkami */}
             <ParallaxBackground />
-            
+
             {/* Pływająca nawigacja */}
             <FloatingNav>
                 <div className="container mx-auto px-4 flex items-center justify-between">
@@ -83,7 +76,7 @@ export default async function HomePage() {
                     </div>
                 </div>
             </FloatingNav>
-            
+
             {/* Spacer dla fixed navigation */}
             <div className="h-[73px]" />
 
@@ -124,7 +117,7 @@ export default async function HomePage() {
                         </h1>
 
                         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                            Zaawansowana platforma do nauki słówek wykorzystująca algorytm <strong className="text-foreground">Spaced Repetition</strong>. 
+                            Zaawansowana platforma do nauki słówek wykorzystująca algorytm <strong className="text-foreground">Spaced Repetition</strong>.
                             Różnorodne tryby nauki, statystyki postępów i system osiągnięć — wszystko <strong className="text-foreground">całkowicie za darmo</strong>!
                         </p>
 
@@ -202,7 +195,7 @@ export default async function HomePage() {
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
                     <AnimatedFeatureCard delay={0}>
-                        <FeatureCard 
+                        <FeatureCard
                             icon={<Brain className="w-6 h-6" />}
                             title="Algorytm SM-2"
                             description="Inteligentne powtórki w optymalnych odstępach czasowych bazowane na nauce"
@@ -210,7 +203,7 @@ export default async function HomePage() {
                         />
                     </AnimatedFeatureCard>
                     <AnimatedFeatureCard delay={0.1}>
-                        <FeatureCard 
+                        <FeatureCard
                             icon={<Keyboard className="w-6 h-6" />}
                             title="Wiele Trybów Nauki"
                             description="Pisanie, quiz obrazkowy i wymowa - wybierz swój styl"
@@ -218,7 +211,7 @@ export default async function HomePage() {
                         />
                     </AnimatedFeatureCard>
                     <AnimatedFeatureCard delay={0.2}>
-                        <FeatureCard 
+                        <FeatureCard
                             icon={<TrendingUp className="w-6 h-6" />}
                             title="Statystyki w czasie rzeczywistym"
                             description="Szczegółowe wykresy i analiza postępów każdego dnia"
@@ -226,7 +219,7 @@ export default async function HomePage() {
                         />
                     </AnimatedFeatureCard>
                     <AnimatedFeatureCard delay={0.3}>
-                        <FeatureCard 
+                        <FeatureCard
                             icon={<Trophy className="w-6 h-6" />}
                             title="System Osiągnięć"
                             description="Zdobywaj odznaki i buduj daily streak dla motywacji"
@@ -284,7 +277,7 @@ export default async function HomePage() {
 
                         <div className="grid md:grid-cols-3 gap-8">
                             <AnimatedFeatureCard delay={0}>
-                                <LearningModeCard 
+                                <LearningModeCard
                                     icon={<Keyboard className="w-8 h-8" />}
                                     title="Tryb Pisania"
                                     description="Ćwicz pisownię w dwóch kierunkach: z polskiego na angielski i z angielskiego na polski. Aktywne pisanie pomaga zapamiętać ortografię."
@@ -293,7 +286,7 @@ export default async function HomePage() {
                                 />
                             </AnimatedFeatureCard>
                             <AnimatedFeatureCard delay={0.15}>
-                                <LearningModeCard 
+                                <LearningModeCard
                                     icon={<ImageIcon className="w-8 h-8" />}
                                     title="Quiz Obrazkowy"
                                     description="Ucz się z pomocą obrazów! Wizualne skojarzenia znacząco przyspieszają zapamiętywanie nowych słów."
@@ -302,7 +295,7 @@ export default async function HomePage() {
                                 />
                             </AnimatedFeatureCard>
                             <AnimatedFeatureCard delay={0.3}>
-                                <LearningModeCard 
+                                <LearningModeCard
                                     icon={<Volume2 className="w-8 h-8" />}
                                     title="Wymowa"
                                     description="Słuchaj poprawnej wymowy każdego słowa. Rozwijaj umiejętność rozumienia i mówienia po angielsku."
@@ -328,11 +321,11 @@ export default async function HomePage() {
                                 Co to jest <span className="text-violet-600 dark:text-violet-400">Spaced Repetition</span>?
                             </h2>
                             <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mt-4">
-                                Spaced Repetition (powtórki w odstępach) to naukowo udowodniona metoda nauki, która optymalizuje proces zapamiętywania. 
+                                Spaced Repetition (powtórki w odstępach) to naukowo udowodniona metoda nauki, która optymalizuje proces zapamiętywania.
                                 System automatycznie planuje powtórki słówek tuż przed momentem, gdy miałbyś je zapomnieć.
                             </p>
                         </AnimatedSection>
-                        
+
                         <div className="grid md:grid-cols-3 gap-6 pt-8">
                             <AnimatedFeatureCard delay={0}>
                                 <div className="p-6 bg-card/80 backdrop-blur-sm border rounded-2xl group hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
@@ -376,19 +369,19 @@ export default async function HomePage() {
                                         <div className="w-full h-full relative">
                                             <svg className="w-full h-full" viewBox="0 0 400 200" preserveAspectRatio="none">
                                                 {/* Krzywa zapominania bez powtórek */}
-                                                <path 
-                                                    d="M 0 20 Q 100 80, 200 160 T 400 180" 
-                                                    fill="none" 
-                                                    stroke="rgb(239 68 68)" 
-                                                    strokeWidth="3" 
+                                                <path
+                                                    d="M 0 20 Q 100 80, 200 160 T 400 180"
+                                                    fill="none"
+                                                    stroke="rgb(239 68 68)"
+                                                    strokeWidth="3"
                                                     strokeDasharray="8 4"
                                                     opacity="0.7"
                                                 />
                                                 {/* Krzywa z powtórkami - optymalna */}
-                                                <path 
-                                                    d="M 0 20 L 50 40 L 51 20 L 120 50 L 121 25 L 220 60 L 221 30 L 350 50 L 400 55" 
-                                                    fill="none" 
-                                                    stroke="url(#gradient)" 
+                                                <path
+                                                    d="M 0 20 L 50 40 L 51 20 L 120 50 L 121 25 L 220 60 L 221 30 L 350 50 L 400 55"
+                                                    fill="none"
+                                                    stroke="url(#gradient)"
                                                     strokeWidth="4"
                                                     strokeLinecap="round"
                                                     strokeLinejoin="round"
@@ -434,7 +427,7 @@ export default async function HomePage() {
                                         Poziomy <span className="text-violet-600 dark:text-violet-400">CEFR</span> od A1 do C1
                                     </h2>
                                     <p className="text-lg text-muted-foreground leading-relaxed">
-                                        Nasze słówka są podzielone według międzynarodowego standardu CEFR (Common European Framework of Reference). 
+                                        Nasze słówka są podzielone według międzynarodowego standardu CEFR (Common European Framework of Reference).
                                         Rozpocznij od podstaw i stopniowo przechodź do zaawansowanych poziomów.
                                     </p>
                                     <ul className="space-y-3">
@@ -485,25 +478,25 @@ export default async function HomePage() {
                         <div className="grid lg:grid-cols-2 gap-12 items-center">
                             <AnimatedSection direction="left" className="order-2 lg:order-1">
                                 <div className="grid grid-cols-2 gap-4">
-                                    <AchievementCard 
+                                    <AchievementCard
                                         icon={<BookOpen className="w-6 h-6" />}
                                         title="Pierwsze Kroki"
                                         description="Naucz się 10 słówek"
                                         unlocked
                                     />
-                                    <AchievementCard 
+                                    <AchievementCard
                                         icon={<Trophy className="w-6 h-6" />}
                                         title="Mistrz Słów"
                                         description="Naucz się 100 słówek"
                                         unlocked
                                     />
-                                    <AchievementCard 
+                                    <AchievementCard
                                         icon={<Flame className="w-6 h-6" />}
                                         title="Systematyczność"
                                         description="3 dni streak"
                                         unlocked
                                     />
-                                    <AchievementCard 
+                                    <AchievementCard
                                         icon={<Zap className="w-6 h-6" />}
                                         title="Tydzień Nauki"
                                         description="7 dni streak"
@@ -515,7 +508,7 @@ export default async function HomePage() {
                                     Zdobywaj <span className="text-violet-600 dark:text-violet-400">osiągnięcia</span> i motywuj się
                                 </h2>
                                 <p className="text-lg text-muted-foreground leading-relaxed">
-                                    Utrzymuj daily streak, zdobywaj odznaki i śledź swoje postępy. 
+                                    Utrzymuj daily streak, zdobywaj odznaki i śledź swoje postępy.
                                     System gamifikacji sprawia, że nauka staje się wciągającą grą!
                                 </p>
                                 <ul className="space-y-3">
@@ -555,7 +548,7 @@ export default async function HomePage() {
 
                     <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
                         <AnimatedTestimonial delay={0}>
-                            <TestimonialCard 
+                            <TestimonialCard
                                 name="Anna K."
                                 role="Studentka"
                                 content="Dzięki tej aplikacji zdałam FCE z wynikiem A! Spaced Repetition naprawdę działa - słówka wchodzą do głowy jak nigdy wcześniej."
@@ -563,7 +556,7 @@ export default async function HomePage() {
                             />
                         </AnimatedTestimonial>
                         <AnimatedTestimonial delay={0.15}>
-                            <TestimonialCard 
+                            <TestimonialCard
                                 name="Marek W."
                                 role="Programista"
                                 content="Codzienne 15 minut z aplikacją znacząco poprawiło moje umiejętności. Mogę teraz swobodnie czytać dokumentację techniczną."
@@ -571,7 +564,7 @@ export default async function HomePage() {
                             />
                         </AnimatedTestimonial>
                         <AnimatedTestimonial delay={0.3}>
-                            <TestimonialCard 
+                            <TestimonialCard
                                 name="Kasia P."
                                 role="Nauczycielka"
                                 content="Polecam tę aplikację moim uczniom. System osiągnięć świetnie motywuje młodzież do regularnej nauki!"
@@ -644,7 +637,7 @@ export default async function HomePage() {
                                         Gotowy, żeby zacząć?
                                     </h2>
                                     <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
-                                        Dołącz do platformy już teraz i zacznij efektywnie uczyć się angielskiego. 
+                                        Dołącz do platformy już teraz i zacznij efektywnie uczyć się angielskiego.
                                         Rejestracja jest szybka i całkowicie darmowa!
                                     </p>
                                     <div className="pt-4">

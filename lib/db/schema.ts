@@ -1,4 +1,4 @@
-import { pgTable, pgSchema, text, timestamp, uuid, varchar, integer, boolean, real, date, jsonb, pgEnum, index } from 'drizzle-orm/pg-core';
+import { pgSchema, text, timestamp, uuid, varchar, integer, boolean, real, date, jsonb, index } from 'drizzle-orm/pg-core';
 
 // Schemat flashcards dla multi-schema architecture
 export const flashcardsSchema = pgSchema('flashcards');

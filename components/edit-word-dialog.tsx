@@ -67,7 +67,7 @@ export function EditWordDialog({ word, open, onOpenChange, onSuccess }: EditWord
 
         setLoading(true);
         try {
-            const result = await updateWord(word.id, formData as any);
+            const result = await updateWord(word.id, formData);
             if (result.success) {
                 toast.success('Słówko zostało zaktualizowane');
                 onOpenChange(false);

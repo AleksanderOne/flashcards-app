@@ -58,7 +58,7 @@ describe('Spaced Repetition (Algorytm SM-2)', () => {
             };
 
             // Wielokrotne porażki, aby obniżyć wartość
-            let currentResult = calculateSM2(input);
+            const currentResult = calculateSM2(input);
             // Hardcode sprawdzenie logiki, znając wzór:
             // EF' = EF + (0.1 - (5-q)*(0.08+(5-q)*0.02))
             // q=0 => 5* (0.08 + 0.1) = 5*0.18 = 0.9

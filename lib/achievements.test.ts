@@ -7,7 +7,7 @@
  * - Logikę sprawdzania i odblokowywania osiągnięć
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
     ACHIEVEMENTS_LIST,
     ACHIEVEMENT_CATEGORIES,
@@ -100,7 +100,7 @@ describe('Achievements (System Osiągnięć)', () => {
 
     describe('RARITY_COLORS', () => {
         it('powinien definiować kolory dla każdej rzadkości', () => {
-            const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+            const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
             rarities.forEach((rarity) => {
                 expect(RARITY_COLORS[rarity]).toBeDefined();
                 expect(RARITY_COLORS[rarity]).toHaveProperty('bg');

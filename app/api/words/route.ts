@@ -1,6 +1,6 @@
 import { db } from '@/lib/db/drizzle';
 import { words, users } from '@/lib/db/schema';
-import { ilike, or, and, eq, desc } from 'drizzle-orm';
+import { ilike, or, and, eq } from 'drizzle-orm';
 import { NextRequest, NextResponse } from 'next/server';
 import { LevelType, LEVELS } from '@/lib/constants';
 import { auth } from '@/lib/auth';

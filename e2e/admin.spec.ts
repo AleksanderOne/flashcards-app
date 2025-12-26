@@ -95,10 +95,9 @@ test.describe('Security Headers (E2E)', () => {
         const response = await page.goto('/');
 
         if (response) {
-            const headers = response.headers();
-
             // Sprawdzenie nagłówka CSP (może być ustawiony przez next.config.ts)
             // W development może nie być obecny
+            // const headers = response.headers();
             // expect(headers['content-security-policy']).toBeDefined();
 
             // X-Content-Type-Options powinien być ustawiony
