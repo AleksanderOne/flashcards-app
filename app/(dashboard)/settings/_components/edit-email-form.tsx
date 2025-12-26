@@ -1,8 +1,8 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Info, ExternalLink, Mail } from 'lucide-react';
 
 interface EditEmailFormProps {
     currentEmail: string;
@@ -18,42 +18,40 @@ export function EditEmailForm({ currentEmail }: EditEmailFormProps) {
     const ssoUrl = process.env.NEXT_PUBLIC_SSO_CENTER_URL || '#';
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Adres email</CardTitle>
-                <CardDescription>
-                    Email jest zarządzany przez centrum logowania
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {/* Wyświetlenie aktualnego emaila */}
-                <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
-                    <span className="text-sm font-medium">{currentEmail}</span>
+        <div className="space-y-4">
+            {/* Wyświetlenie aktualnego emaila */}
+            <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-xl border">
+                <div className="w-10 h-10 rounded-lg bg-accent-fuchsia-muted flex items-center justify-center shrink-0">
+                    <Mail className="w-5 h-5 text-accent-fuchsia" />
                 </div>
+                <div className="min-w-0">
+                    <div className="text-xs text-muted-foreground">Aktualny email</div>
+                    <div className="font-medium truncate">{currentEmail}</div>
+                </div>
+            </div>
 
-                {/* Informacja o centrum logowania */}
-                <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertDescription>
-                        Zmiana adresu email jest możliwa tylko w centrum logowania.
-                        Po zmianie w centrum, nowy email zostanie automatycznie
-                        zsynchronizowany przy następnym logowaniu.
-                    </AlertDescription>
-                </Alert>
+            {/* Informacja o centrum logowania */}
+            <Alert className="border-warning/30 bg-warning-muted">
+                <Info className="h-4 w-4 text-warning" />
+                <AlertDescription className="text-warning-foreground text-sm">
+                    Zmiana adresu email jest możliwa tylko w centrum logowania.
+                    Po zmianie, nowy email zostanie automatycznie zsynchronizowany.
+                </AlertDescription>
+            </Alert>
 
-                {/* Link do centrum logowania */}
-                {ssoUrl && ssoUrl !== '#' && (
+            {/* Link do centrum logowania */}
+            {ssoUrl && ssoUrl !== '#' && (
+                <Button variant="outline" className="w-full" asChild>
                     <a
                         href={ssoUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
                     >
+                        <ExternalLink className="w-4 h-4 mr-2" />
                         Przejdź do centrum logowania
-                        <ExternalLink className="h-4 w-4" />
                     </a>
-                )}
-            </CardContent>
-        </Card>
+                </Button>
+            )}
+        </div>
     );
 }

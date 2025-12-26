@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Field, FieldLabel } from '@/components/ui/field';
+import { Label } from '@/components/ui/label';
 import { updateUserName } from '@/app/actions/profile-actions';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { Loader2, Check } from 'lucide-react';
 
 interface EditNameFormProps {
     currentName: string | null;
@@ -37,28 +37,38 @@ export function EditNameForm({ currentName }: EditNameFormProps) {
         }
     };
 
+    const hasChanges = name !== currentName;
+
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Nazwa użytkownika</CardTitle>
-                <CardDescription>Zmień swoją nazwę wyświetlaną w aplikacji</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <Field>
-                        <FieldLabel>Nazwa</FieldLabel>
-                        <Input
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Twoja nazwa"
-                            disabled={isLoading}
-                        />
-                    </Field>
-                    <Button type="submit" disabled={isLoading || name === currentName}>
-                        {isLoading ? 'Zapisywanie...' : 'Zapisz nazwę'}
-                    </Button>
-                </form>
-            </CardContent>
-        </Card>
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-medium">Nazwa wyświetlana</Label>
+                <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Twoja nazwa"
+                    disabled={isLoading}
+                    className="h-11"
+                />
+            </div>
+            <Button 
+                type="submit" 
+                disabled={isLoading || !hasChanges}
+                className="bg-gradient-to-r from-primary to-accent-fuchsia hover:opacity-90 text-white"
+            >
+                {isLoading ? (
+                    <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Zapisywanie...
+                    </>
+                ) : (
+                    <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Zapisz zmiany
+                    </>
+                )}
+            </Button>
+        </form>
     );
 }
