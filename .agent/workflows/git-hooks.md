@@ -9,26 +9,37 @@ Projekt używa **Husky** do automatycznego uruchamiania sprawdzeń przed commite
 ## Struktura sprawdzeń
 
 ### Pre-commit (przed każdym commitem) - szybkie
+
 Uruchamia się automatycznie przy `git commit`:
 
-1. **ESLint** - sprawdzanie jakości kodu
-2. **TypeScript** - sprawdzanie typów (`tsc --noEmit`)
-3. **Testy jednostkowe** - vitest (`npm run test:unit`)
+1. **Lint-staged** - uruchamia `eslint --fix` i `prettier --write` tylko na zmienionych plikach.
+2. **Testy jednostkowe** - vitest (`npm run test:unit`)
 
-Czas: ~10-30 sekund
+Czas: ~10-30 sekund (zależy od ilości zmian)
+
+### Commit-msg (weryfikacja wiadomości)
+
+Sprawdza czy wiadomość commita jest zgodna ze standardem **Conventional Commits**.
+Przykłady: `feat: dodanie logowania`, `fix: naprawa błędu`, `chore: aktualizacja bibliotek`.
 
 ### Pre-push (przed pushem) - pełne
+
 Uruchamia się automatycznie przy `git push`:
 
-1. **Testy E2E** - Playwright (`npm run test:e2e`)
-2. **Build produkcyjny** - Next.js (`npm run build`)
+1. **Test Coverage** - sprawdza pokrycie kodu testami.
+2. **Build produkcyjny** - Next.js (`npm run build`).
+3. **Testy E2E** - Playwright (`npm run test:e2e`).
 
 Czas: ~1-3 minuty
 
 ## Pliki konfiguracyjne
 
-- `.husky/pre-commit` - hook pre-commit
-- `.husky/pre-push` - hook pre-push
+- `.husky/pre-commit`
+- `.husky/pre-push`
+- `.husky/commit-msg`
+- `.lintstagedrc.json` - konfiguracja lint-staged
+- `commitlint.config.js` - konfiguracja commitlint (Conventional Commits)
+- `.releaserc.json` - konfiguracja semantic-release
 
 ## Dostępne skrypty npm
 
@@ -36,80 +47,29 @@ Czas: ~1-3 minuty
 # Szybkie testy (vitest)
 npm run test:unit
 
+# Test coverage
+npm run test:coverage
+
 # Testy E2E (playwright)
 npm run test:e2e
 
-# Wszystkie testy
-npm run test:all
+# Pełna walidacja (typecheck + lint + unit + build)
+npm run validate
 
-# Build produkcyjny
-npm run build
+# Formatowanie kodu
+npm run format
 
-# Lint
-npm run lint
+# Lintowanie z automatyczną naprawą
+npm run lint:fix
 ```
 
-## Ręczne uruchomienie wszystkich sprawdzeń
+## Jak to działa w praktyce?
 
-Jeśli chcesz ręcznie uruchomić pełne sprawdzenie przed commitem:
+1. **Piszesz kod** -> `git add .`
+2. **Robisz commit** -> `git commit -m "feat: nowa funkcja"`
+   - Uruchamia się `pre-commit`: formatuje kod, sprawdza linter, puszcza testy unit.
+   - Uruchamia się `commit-msg`: sprawdza czy "feat: ..." jest poprawne.
+3. **Wypychasz zmiany** -> `git push`
+   - Uruchamia się `pre-push`: sprawdza coverage, robi build, puszcza testy E2E.
 
-```bash
-# 1. Lint
-npm run lint
-
-# 2. TypeScript
-npx tsc --noEmit
-
-# 3. Testy jednostkowe
-npm run test:unit
-
-# 4. Testy E2E
-npm run test:e2e
-
-# 5. Build produkcyjny
-npm run build
-```
-
-Lub jedno polecenie:
-
-```bash
-npm run lint && npx tsc --noEmit && npm run test:all && npm run build
-```
-
-## Pominięcie hooków (w pilnych przypadkach)
-
-⚠️ **NIE ZALECANE** - używaj tylko w wyjątkowych sytuacjach:
-
-```bash
-# Pomiń pre-commit
-git commit --no-verify -m "wiadomość"
-
-# Pomiń pre-push
-git push --no-verify
-```
-
-## Rozwiązywanie problemów
-
-### Hook nie działa
-```bash
-# Reinstalacja husky
-npm run prepare
-```
-
-### Błąd uprawnień
-```bash
-chmod +x .husky/pre-commit
-chmod +x .husky/pre-push
-```
-
-## Dlaczego taka struktura?
-
-| Hook | Sprawdzenie | Powód |
-|------|-------------|-------|
-| pre-commit | lint, ts, unit | Szybkie - nie blokują pracy |
-| pre-push | e2e, build | Wolne ale kluczowe przed deployem |
-
-Dzięki temu:
-- Commity są szybkie (~30s)
-- Push gwarantuje że kod się buduje i wszystkie testy przechodzą
-- Vercel nie dostanie zepsutego kodu
+To zapewnia, że do repozytorium trafia tylko czysty, przetestowany i działający kod.
