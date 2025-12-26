@@ -6,6 +6,8 @@ import { WordsManagementCard } from './_components/words-management-card';
 import { PageLayout } from '@/components/page-layout';
 import { AdminNav } from '../_components/admin-nav';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminWordsPage() {
     const session = await auth();
 

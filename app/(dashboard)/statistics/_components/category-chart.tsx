@@ -54,16 +54,16 @@ export function CategoryChart({ data }: CategoryChartProps) {
                 />
                 <Tooltip
                     cursor={{ fill: 'oklch(0.5 0.02 270 / 0.2)' }}
-                    contentStyle={{ 
-                        backgroundColor: 'var(--card)', 
-                        borderColor: 'var(--border)', 
+                    contentStyle={{
+                        backgroundColor: 'var(--card)',
+                        borderColor: 'var(--border)',
                         borderRadius: '8px',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                         color: 'var(--foreground)'
                     }}
                     labelStyle={{ color: 'var(--foreground)' }}
                     itemStyle={{ color: 'var(--foreground)' }}
-                    formatter={(value: number, name: string, props: any) => [
+                    formatter={(value: any, name: any, props: any) => [
                         `${value} odpowiedzi (${props.payload.accuracy.toFixed(1)}% poprawnych)`,
                         props.payload.category
                     ]}

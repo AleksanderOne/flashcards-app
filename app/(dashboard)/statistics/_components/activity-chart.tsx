@@ -36,8 +36,8 @@ export function ActivityChart({ data }: ActivityChartProps) {
                 />
                 <Tooltip
                     cursor={{ fill: 'oklch(0.5 0.02 270 / 0.2)' }}
-                    contentStyle={{ 
-                        backgroundColor: 'var(--card)', 
+                    contentStyle={{
+                        backgroundColor: 'var(--card)',
                         borderColor: 'var(--border)',
                         borderRadius: '8px',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
@@ -45,7 +45,7 @@ export function ActivityChart({ data }: ActivityChartProps) {
                     }}
                     labelStyle={{ color: 'var(--foreground)' }}
                     itemStyle={{ color: 'var(--foreground)' }}
-                    formatter={(value: number) => [`${value} odpowiedzi`, 'Aktywność']}
+                    formatter={(value: any) => [`${value} odpowiedzi`, 'Aktywność']}
                     labelFormatter={(label) => new Date(label).toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' })}
                 />
                 <Bar

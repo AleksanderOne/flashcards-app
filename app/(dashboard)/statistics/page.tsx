@@ -17,13 +17,13 @@ import { StatsCard } from '../learn/_components/stats-card';
 import { userStats, learningSessions, wordProgress } from '@/lib/db/schema';
 import { PageLayout } from '@/components/page-layout';
 import { Suspense } from 'react';
-import { 
-    TrendingUp, 
-    Target, 
-    Clock, 
-    Flame, 
-    BookOpen, 
-    BarChart3, 
+import {
+    TrendingUp,
+    Target,
+    Clock,
+    Flame,
+    BookOpen,
+    BarChart3,
     PieChart as PieChartIcon,
     AlertTriangle,
     Award,
@@ -44,7 +44,7 @@ interface StatisticsPageProps {
 function getStartDate(range: string): Date | null {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
-    
+
     switch (range) {
         case '1':
             return now; // Dzisiejszy dzień
@@ -81,7 +81,7 @@ export default async function StatisticsPage(props: StatisticsPageProps) {
     const searchParams = await props.searchParams;
     const range = searchParams.range || '30';
     const startDate = getStartDate(range);
-    
+
     const session = await auth();
     if (!session || !session.user || !session.user.id) {
         redirect('/login');
@@ -94,11 +94,11 @@ export default async function StatisticsPage(props: StatisticsPageProps) {
     });
 
     // 2. Buduj warunek czasowy dla zapytań
-    const timeCondition = startDate 
+    const timeCondition = startDate
         ? and(
             eq(learningSessions.userId, userId),
             gte(learningSessions.createdAt, startDate)
-          )
+        )
         : eq(learningSessions.userId, userId);
 
     // 3. Pobierz sesje w wybranym zakresie
@@ -208,8 +208,8 @@ export default async function StatisticsPage(props: StatisticsPageProps) {
         mode,
         label: LEARNING_MODE_LABELS[mode],
         count: modeMap.get(mode)?.count || 0,
-        accuracy: modeMap.get(mode)?.count 
-            ? (modeMap.get(mode)!.correct / modeMap.get(mode)!.count) * 100 
+        accuracy: modeMap.get(mode)?.count
+            ? (modeMap.get(mode)!.correct / modeMap.get(mode)!.count) * 100
             : 0,
     }));
 
@@ -252,11 +252,11 @@ export default async function StatisticsPage(props: StatisticsPageProps) {
     // 12. Najtrudniejsze słówka (najniższa skuteczność z min. 3 próbami)
     const wordStatsMap = new Map<string, { english: string; polish: string; correct: number; total: number }>();
     sessionsInRange.forEach(s => {
-        const current = wordStatsMap.get(s.wordEnglish) || { 
-            english: s.wordEnglish, 
-            polish: s.wordPolish, 
-            correct: 0, 
-            total: 0 
+        const current = wordStatsMap.get(s.wordEnglish) || {
+            english: s.wordEnglish,
+            polish: s.wordPolish,
+            correct: 0,
+            total: 0
         };
         current.total++;
         if (s.isCorrect) current.correct++;
@@ -303,14 +303,14 @@ export default async function StatisticsPage(props: StatisticsPageProps) {
         (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
 
-    sortedSessions.forEach((s, idx) => {
+    for (const s of sortedSessions) {
         const sessionTime = new Date(s.createdAt).getTime();
-        
+
         if (!currentSession || sessionTime - new Date(currentSession.date).getTime() > SESSION_GAP_MS) {
             // Rozpocznij nową sesję
             if (currentSession) {
-                currentSession.accuracy = currentSession.total > 0 
-                    ? (currentSession.correct / currentSession.total) * 100 
+                currentSession.accuracy = currentSession.total > 0
+                    ? (currentSession.correct / currentSession.total) * 100
                     : 0;
                 sessionGroups.push(currentSession);
             }
@@ -332,12 +332,12 @@ export default async function StatisticsPage(props: StatisticsPageProps) {
             currentSession.durationMs += s.timeSpentMs;
             currentSession.levels.add(s.level);
         }
-    });
+    }
 
     // Dodaj ostatnią sesję
     if (currentSession) {
-        currentSession.accuracy = currentSession.total > 0 
-            ? (currentSession.correct / currentSession.total) * 100 
+        currentSession.accuracy = currentSession.total > 0
+            ? (currentSession.correct / currentSession.total) * 100
             : 0;
         sessionGroups.push(currentSession);
     }
@@ -379,7 +379,7 @@ export default async function StatisticsPage(props: StatisticsPageProps) {
                     <StatsFilters />
                 </Suspense>
                 <p className="text-sm text-muted-foreground">
-                    {totalSessions > 0 
+                    {totalSessions > 0
                         ? `${totalSessions} odpowiedzi w wybranym okresie`
                         : 'Brak danych w wybranym okresie'
                     }
@@ -599,8 +599,8 @@ export default async function StatisticsPage(props: StatisticsPageProps) {
                         <CardDescription>Słówka z najniższą skutecznością (min. 3 próby)</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <DifficultWords 
-                            words={difficultWords} 
+                        <DifficultWords
+                            words={difficultWords}
                             title="Najtrudniejsze"
                             emptyMessage="Brak wystarczających danych (min. 3 próby na słówko)"
                         />
@@ -616,8 +616,8 @@ export default async function StatisticsPage(props: StatisticsPageProps) {
                         <CardDescription>Słówka z najwyższą skutecznością (min. 3 próby)</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <DifficultWords 
-                            words={masteredWords} 
+                        <DifficultWords
+                            words={masteredWords}
                             title="Najlepsze"
                             emptyMessage="Brak wystarczających danych (min. 3 próby na słówko)"
                         />
@@ -656,8 +656,8 @@ export default async function StatisticsPage(props: StatisticsPageProps) {
                     {recentSessions.length > 0 ? (
                         <div className="space-y-3">
                             {recentSessions.map((session) => (
-                                <div 
-                                    key={session.id} 
+                                <div
+                                    key={session.id}
                                     className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border hover:bg-muted/50 transition-colors"
                                 >
                                     <div className="flex items-center gap-4">
@@ -666,9 +666,9 @@ export default async function StatisticsPage(props: StatisticsPageProps) {
                                         </div>
                                         <div>
                                             <p className="font-medium">
-                                                {session.date.toLocaleDateString('pl-PL', { 
+                                                {session.date.toLocaleDateString('pl-PL', {
                                                     weekday: 'long',
-                                                    day: 'numeric', 
+                                                    day: 'numeric',
                                                     month: 'long',
                                                     hour: '2-digit',
                                                     minute: '2-digit'
@@ -700,13 +700,12 @@ export default async function StatisticsPage(props: StatisticsPageProps) {
                                                 <span className="font-semibold">{session.incorrect}</span>
                                             </div>
                                         </div>
-                                        <div className={`px-3 py-1.5 rounded-full text-sm font-semibold ${
-                                            session.accuracy >= 80 
-                                                ? 'bg-success/10 text-success' 
-                                                : session.accuracy >= 60 
-                                                    ? 'bg-warning/10 text-warning' 
+                                        <div className={`px-3 py-1.5 rounded-full text-sm font-semibold ${session.accuracy >= 80
+                                                ? 'bg-success/10 text-success'
+                                                : session.accuracy >= 60
+                                                    ? 'bg-warning/10 text-warning'
                                                     : 'bg-error/10 text-error'
-                                        }`}>
+                                            }`}>
                                             {session.accuracy.toFixed(0)}%
                                         </div>
                                     </div>

@@ -5,6 +5,8 @@ import { ContactMessagesCard } from './_components/contact-messages-card';
 import { getAppSettings, getContactMessages } from './actions';
 import { AdminNav } from '../_components/admin-nav';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminSettingsPage() {
     const [settings, messages] = await Promise.all([
         getAppSettings(),

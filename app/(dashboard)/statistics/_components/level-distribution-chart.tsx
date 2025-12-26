@@ -27,17 +27,17 @@ const LEVEL_LABELS: Record<string, string> = {
 // Komponent tooltipa z lepszym pozycjonowaniem
 const CustomTooltip = ({ active, payload }: any) => {
     if (!active || !payload || !payload.length) return null;
-    
+
     const data = payload[0].payload;
-    const accuracy = data.count > 0 
-        ? ((data.correct / data.count) * 100).toFixed(1) 
+    const accuracy = data.count > 0
+        ? ((data.correct / data.count) * 100).toFixed(1)
         : 0;
-    
+
     return (
         <div className="bg-card border border-border rounded-xl shadow-xl p-4 min-w-[200px]">
             <div className="flex items-center gap-2 mb-2">
-                <div 
-                    className="w-4 h-4 rounded-full" 
+                <div
+                    className="w-4 h-4 rounded-full"
                     style={{ backgroundColor: LEVEL_COLORS[data.level] }}
                 />
                 <span className="font-semibold text-foreground">
@@ -65,7 +65,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 export function LevelDistributionChart({ data }: LevelDistributionChartProps) {
     const hasData = data.some(d => d.count > 0);
     const totalCount = data.reduce((sum, d) => sum + d.count, 0);
-    
+
     if (!hasData) {
         return (
             <div className="flex h-[280px] items-center justify-center text-muted-foreground">
@@ -84,8 +84,8 @@ export function LevelDistributionChart({ data }: LevelDistributionChartProps) {
     return (
         <div className="space-y-4">
             <ResponsiveContainer width="100%" height={280}>
-                <BarChart 
-                    data={dataWithPercent} 
+                <BarChart
+                    data={dataWithPercent}
                     layout="vertical"
                     margin={{ top: 0, right: 80, bottom: 0, left: 0 }}
                 >
@@ -124,20 +124,20 @@ export function LevelDistributionChart({ data }: LevelDistributionChartProps) {
                             );
                         }}
                     />
-                    <Tooltip 
+                    <Tooltip
                         content={<CustomTooltip />}
                         cursor={{ fill: 'oklch(0.5 0.02 270 / 0.1)' }}
                         wrapperStyle={{ zIndex: 1000 }}
                     />
-                    <Bar 
-                        dataKey="count" 
+                    <Bar
+                        dataKey="count"
                         radius={[0, 8, 8, 0]}
                         barSize={36}
                     >
                         {dataWithPercent.map((entry, index) => (
-                            <Cell 
-                                key={`cell-${index}`} 
-                                fill={LEVEL_COLORS[entry.level] || '#888888'} 
+                            <Cell
+                                key={`cell-${index}`}
+                                fill={LEVEL_COLORS[entry.level] || '#888888'}
                             />
                         ))}
                         <LabelList
@@ -146,21 +146,21 @@ export function LevelDistributionChart({ data }: LevelDistributionChartProps) {
                             fill="var(--foreground)"
                             fontSize={13}
                             fontWeight={500}
-                            formatter={(value: number) => value > 0 ? `${value}` : ''}
+                            formatter={(value: any) => value > 0 ? `${value}` : ''}
                         />
                     </Bar>
                 </BarChart>
             </ResponsiveContainer>
-            
+
             {/* Legenda z dodatkowymi informacjami */}
             <div className="flex flex-wrap gap-3 justify-center border-t pt-4">
                 {dataWithPercent.map((item) => (
-                    <div 
+                    <div
                         key={item.level}
                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50"
                     >
-                        <div 
-                            className="w-3 h-3 rounded-full" 
+                        <div
+                            className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: LEVEL_COLORS[item.level] }}
                         />
                         <span className="text-sm font-medium">{item.level}</span>

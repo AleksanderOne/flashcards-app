@@ -41,16 +41,16 @@ export function ProgressChart({ data }: ProgressChartProps) {
                 />
                 <Tooltip
                     cursor={{ strokeDasharray: '3 3' }}
-                    contentStyle={{ 
-                        backgroundColor: 'var(--card)', 
-                        borderColor: 'var(--border)', 
+                    contentStyle={{
+                        backgroundColor: 'var(--card)',
+                        borderColor: 'var(--border)',
                         borderRadius: '8px',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                         color: 'var(--foreground)'
                     }}
                     labelStyle={{ color: 'var(--foreground)' }}
                     itemStyle={{ color: 'var(--foreground)' }}
-                    formatter={(value: number, name: string) => [
+                    formatter={(value: any, name: any) => [
                         value,
                         name === 'cumulative' ? 'Łącznie słówek' : 'Nowe tego dnia'
                     ]}

@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 interface StatsCardProps {
     label: string;
-    value: number;
+    value: number | string;
     icon: string;
     subtext: string;
 }

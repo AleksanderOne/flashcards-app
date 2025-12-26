@@ -1,8 +1,22 @@
-CREATE SCHEMA "flashcards";
+CREATE SCHEMA IF NOT EXISTS "flashcards";
 --> statement-breakpoint
-CREATE TYPE "flashcards"."learning_mode" AS ENUM('pl_to_en_text', 'en_to_pl_text', 'pl_to_en_quiz', 'en_to_pl_quiz');--> statement-breakpoint
-CREATE TYPE "flashcards"."level" AS ENUM('A1', 'A2', 'B1', 'B2', 'C1');--> statement-breakpoint
-CREATE TYPE "flashcards"."user_role" AS ENUM('user', 'admin');--> statement-breakpoint
+DO $$ BEGIN
+    CREATE TYPE "flashcards"."learning_mode" AS ENUM('pl_to_en_text', 'en_to_pl_text', 'pl_to_en_quiz', 'en_to_pl_quiz');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+    CREATE TYPE "flashcards"."level" AS ENUM('A1', 'A2', 'B1', 'B2', 'C1');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+    CREATE TYPE "flashcards"."user_role" AS ENUM('user', 'admin');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;--> statement-breakpoint
 CREATE TABLE "flashcards"."accounts" (
 	"id" varchar(255) PRIMARY KEY NOT NULL,
 	"user_id" varchar(255) NOT NULL,

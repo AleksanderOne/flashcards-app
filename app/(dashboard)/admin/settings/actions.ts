@@ -41,14 +41,14 @@ export async function getAppSettings(): Promise<AppSettings> {
     }
 
     const result = await db.select().from(appSettings).limit(1);
-    
+
     if (result.length === 0) {
         // Utwórz domyślne ustawienia jeśli nie istnieją
         const newSettings = await db.insert(appSettings).values({
             contactEmail: 'kontakt@flashcards.pl',
             emailNotificationsEnabled: true,
         }).returning();
-        
+
         return {
             id: newSettings[0].id,
             contactEmail: newSettings[0].contactEmail,
@@ -71,7 +71,7 @@ export async function getPublicAppSettings(): Promise<{ contactEmail: string; em
         contactEmail: appSettings.contactEmail,
         emailNotificationsEnabled: appSettings.emailNotificationsEnabled,
     }).from(appSettings).limit(1);
-    
+
     if (result.length === 0) {
         return null;
     }
@@ -93,12 +93,12 @@ export async function updateAppSettings(formData: FormData): Promise<{ success: 
 
     const validated = settingsSchema.safeParse(rawData);
     if (!validated.success) {
-        return { success: false, error: validated.error.errors[0].message };
+        return { success: false, error: validated.error.issues[0].message };
     }
 
     try {
         const existing = await db.select().from(appSettings).limit(1);
-        
+
         if (existing.length === 0) {
             await db.insert(appSettings).values({
                 contactEmail: validated.data.contactEmail,
@@ -149,7 +149,7 @@ export async function markMessageAsRead(messageId: string): Promise<{ success: b
         await db.update(contactMessages)
             .set({ isRead: true })
             .where(eq(contactMessages.id, messageId));
-        
+
         revalidatePath('/admin/settings');
         return { success: true };
     } catch {
@@ -167,7 +167,7 @@ export async function deleteContactMessage(messageId: string): Promise<{ success
     try {
         await db.delete(contactMessages)
             .where(eq(contactMessages.id, messageId));
-        
+
         revalidatePath('/admin/settings');
         return { success: true };
     } catch {

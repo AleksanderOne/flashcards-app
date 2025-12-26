@@ -43,17 +43,17 @@ export function AccuracyChart({ data }: AccuracyChartProps) {
                 />
                 <Tooltip
                     cursor={{ strokeDasharray: '3 3' }}
-                    contentStyle={{ 
-                        backgroundColor: 'var(--card)', 
-                        borderColor: 'var(--border)', 
+                    contentStyle={{
+                        backgroundColor: 'var(--card)',
+                        borderColor: 'var(--border)',
                         borderRadius: '8px',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                         color: 'var(--foreground)'
                     }}
                     labelStyle={{ color: 'var(--foreground)' }}
                     itemStyle={{ color: 'var(--foreground)' }}
-                    formatter={(value: number, name: string, props: any) => [
-                        `${value.toFixed(1)}% (${props.payload.total} odpowiedzi)`,
+                    formatter={(value: any, name: any, props: any) => [
+                        `${Number(value).toFixed(1)}% (${props.payload.total} odpowiedzi)`,
                         'Skuteczność'
                     ]}
                     labelFormatter={(label) => new Date(label).toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' })}
