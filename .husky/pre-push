@@ -1,0 +1,37 @@
+#!/bin/sh
+
+# ==============================================
+# Pre-push hook: Pełne sprawdzenia przed pushem do repo
+# Uruchamia wolniejsze operacje: E2E + build produkcyjny
+# ==============================================
+
+echo "🚀 Uruchamiam pełne sprawdzenia przed pushem..."
+
+# 1. Testy E2E (playwright)
+echo ""
+echo "🎭 Krok 1/2: Testy E2E (playwright)..."
+npm run test:e2e
+if [ $? -ne 0 ]; then
+  echo "❌ Testy E2E: Niektóre testy nie przeszły."
+  echo "❌ Push zablokowany. Napraw testy przed pushem."
+  exit 1
+fi
+echo "✅ Testy E2E: OK"
+
+# 2. Build produkcyjny (Next.js)
+echo ""
+echo "🏗️  Krok 2/2: Budowanie aplikacji produkcyjnej..."
+npm run build
+if [ $? -ne 0 ]; then
+  echo "❌ Build: Budowanie aplikacji nie powiodło się."
+  echo "❌ Push zablokowany. Napraw błędy przed pushem."
+  exit 1
+fi
+echo "✅ Build produkcyjny: OK"
+
+# Wszystko OK
+echo ""
+echo "✅ =========================================="
+echo "✅ Pre-push: Wszystkie sprawdzenia przeszły!"
+echo "✅ Aplikacja gotowa do deploymentu na Vercel!"
+echo "✅ =========================================="

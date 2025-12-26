@@ -1,0 +1,45 @@
+#!/bin/sh
+
+# ==============================================
+# Pre-commit hook: Szybkie sprawdzenia przed każdym commitem
+# E2E i build są w pre-push (wolniejsze operacje)
+# ==============================================
+
+echo "🔍 Uruchamiam szybkie sprawdzenia przed commitem..."
+
+# 1. Lint - sprawdzenie jakości kodu
+echo ""
+echo "📝 Krok 1/3: ESLint - sprawdzanie jakości kodu..."
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "❌ ESLint: Znaleziono błędy. Popraw je przed commitem."
+  exit 1
+fi
+echo "✅ ESLint: OK"
+
+# 2. TypeScript - sprawdzenie typów
+echo ""
+echo "🔷 Krok 2/3: TypeScript - sprawdzanie typów..."
+npx tsc --noEmit
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript: Znaleziono błędy typów. Popraw je przed commitem."
+  exit 1
+fi
+echo "✅ TypeScript: OK"
+
+# 3. Testy jednostkowe (vitest)
+echo ""
+echo "🧪 Krok 3/3: Testy jednostkowe (vitest)..."
+npm run test:unit
+if [ $? -ne 0 ]; then
+  echo "❌ Testy jednostkowe: Niektóre testy nie przeszły."
+  exit 1
+fi
+echo "✅ Testy jednostkowe: OK"
+
+# Wszystko OK
+echo ""
+echo "✅ =========================================="
+echo "✅ Pre-commit: Wszystkie szybkie sprawdzenia OK!"
+echo "✅ (E2E i build uruchomią się przed push)"
+echo "✅ =========================================="
