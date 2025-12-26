@@ -8,6 +8,13 @@
       "when": 1766035142329,
       "tag": "0000_thin_tenebrous",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1766775861995,
+      "tag": "0001_natural_stellaris",
+      "breakpoints": true
     }
   ]
 }

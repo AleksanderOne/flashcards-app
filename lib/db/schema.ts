@@ -131,6 +131,7 @@ export const userStats = flashcardsSchema.table('user_stats', {
     currentStreak: integer('current_streak').default(0).notNull(),
     longestStreak: integer('longest_streak').default(0).notNull(),
     totalWordsLearned: integer('total_words_learned').default(0).notNull(),
+    totalSessions: integer('total_sessions').default(0).notNull(),
     totalTimeMs: integer('total_time_ms').default(0).notNull(), // całkowity czas nauki w ms
     lastActiveDate: date('last_active_date'),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
