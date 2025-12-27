@@ -1,6 +1,6 @@
 /**
  * SSO Client - minimalna integracja z Centrum Logowania
- * 
+ *
  * Ten plik zawiera całą logikę potrzebną do integracji z SSO centrum.
  * Wymagane zmienne środowiskowe:
  * - SSO_CENTER_URL (serwer)
@@ -10,27 +10,29 @@
  * - NEXT_PUBLIC_SSO_CLIENT_ID (klient)
  */
 
-import { cookies } from 'next/headers';
+import { cookies } from "next/headers";
 
 // ============================================================================
 // KONFIGURACJA
 // ============================================================================
 
 export const SSO_CONFIG = {
-    // URL centrum logowania (serwer i klient mają osobne zmienne)
-    centerUrl: process.env.SSO_CENTER_URL || process.env.NEXT_PUBLIC_SSO_CENTER_URL || '',
+  // URL centrum logowania (serwer i klient mają osobne zmienne)
+  centerUrl:
+    process.env.SSO_CENTER_URL || process.env.NEXT_PUBLIC_SSO_CENTER_URL || "",
 
-    // Client ID (slug projektu z dashboardu centrum)
-    clientId: process.env.SSO_CLIENT_ID || process.env.NEXT_PUBLIC_SSO_CLIENT_ID || '',
+  // Client ID (slug projektu z dashboardu centrum)
+  clientId:
+    process.env.SSO_CLIENT_ID || process.env.NEXT_PUBLIC_SSO_CLIENT_ID || "",
 
-    // API Key do wymiany kodu (tylko serwer)
-    apiKey: process.env.SSO_API_KEY || '',
+  // API Key do wymiany kodu (tylko serwer)
+  apiKey: process.env.SSO_API_KEY || "",
 
-    // Czas życia sesji (30 dni w ms)
-    sessionMaxAge: 30 * 24 * 60 * 60 * 1000,
+  // Czas życia sesji (30 dni w ms)
+  sessionMaxAge: 30 * 24 * 60 * 60 * 1000,
 
-    // Czas między weryfikacjami Kill Switch (5 minut)
-    verifyInterval: 5 * 60 * 1000,
+  // Czas między weryfikacjami Kill Switch (5 minut)
+  verifyInterval: 5 * 60 * 1000,
 };
 
 // ============================================================================
@@ -39,29 +41,29 @@ export const SSO_CONFIG = {
 
 /** Struktura sesji SSO przechowywanej w ciasteczku */
 export interface SSOSession {
-    userId: string;
-    email: string;
-    name: string | null;
-    role: 'user' | 'admin';
-    expiresAt: number;
-    tokenVersion?: number;   // Wersja tokenu (dla Kill Switch)
-    lastVerified?: number;   // Timestamp ostatniej weryfikacji
+  userId: string;
+  email: string;
+  name: string | null;
+  role: "user" | "admin";
+  expiresAt: number;
+  tokenVersion?: number; // Wersja tokenu (dla Kill Switch)
+  lastVerified?: number; // Timestamp ostatniej weryfikacji
 }
 
 /** Odpowiedź z API /api/v1/token */
 export interface SSOTokenResponse {
-    user: {
-        id: string;
-        email: string;
-        name: string | null;
-        image: string | null;
-        role: 'user' | 'admin';
-        tokenVersion?: number;
-    };
-    project: {
-        id: string;
-        name: string;
-    };
+  user: {
+    id: string;
+    email: string;
+    name: string | null;
+    image: string | null;
+    role: "user" | "admin";
+    tokenVersion?: number;
+  };
+  project: {
+    id: string;
+    name: string;
+  };
 }
 
 // ============================================================================
@@ -73,33 +75,67 @@ export interface SSOTokenResponse {
  * @returns Sesja SSO lub null jeśli brak/wygasła
  */
 export async function getSSOSession(): Promise<SSOSession | null> {
-    try {
-        const cookieStore = await cookies();
-        const sessionCookie = cookieStore.get('sso-session');
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get("sso-session");
 
-        if (!sessionCookie?.value) {
-            return null;
-        }
-
-        const session: SSOSession = JSON.parse(sessionCookie.value);
-
-        // Sprawdź czy sesja nie wygasła
-        if (session.expiresAt < Date.now()) {
-            return null;
-        }
-
-        return session;
-    } catch {
-        return null;
+    if (!sessionCookie?.value) {
+      return null;
     }
+
+    const session: SSOSession = JSON.parse(sessionCookie.value);
+
+    // Sprawdź czy sesja nie wygasła
+    if (session.expiresAt < Date.now()) {
+      return null;
+    }
+
+    return session;
+  } catch {
+    return null;
+  }
 }
 
 /**
- * Usuwa sesję SSO (wylogowanie)
+ * Usuwa sesję SSO (wylogowanie) i powiadamia centrum logowania
  */
 export async function clearSSOSession(): Promise<void> {
-    const cookieStore = await cookies();
-    cookieStore.delete('sso-session');
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("sso-session");
+
+  // Powiadom centrum logowania o wylogowaniu (jeśli mamy sesję)
+  if (sessionCookie?.value) {
+    try {
+      const session: SSOSession = JSON.parse(sessionCookie.value);
+      await logoutFromCenter(session.userId);
+    } catch {
+      // Ignoruj błędy - wylogowanie lokalne jest ważniejsze
+    }
+  }
+
+  cookieStore.delete("sso-session");
+}
+
+/**
+ * Informuje centrum logowania o wylogowaniu użytkownika
+ */
+export async function logoutFromCenter(userId: string): Promise<void> {
+  const { centerUrl, clientId } = SSO_CONFIG;
+
+  try {
+    await fetch(`${centerUrl}/api/v1/public/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId,
+        projectSlug: clientId,
+      }),
+    });
+  } catch (error) {
+    console.warn("Błąd wylogowania z centrum:", error);
+  }
 }
 
 // ============================================================================
@@ -111,35 +147,35 @@ export async function clearSSOSession(): Promise<void> {
  * Używane w /api/auth/sso-callback
  */
 export async function exchangeCodeForUser(
-    code: string,
-    redirectUri: string
+  code: string,
+  redirectUri: string,
 ): Promise<SSOTokenResponse | null> {
-    const { centerUrl, apiKey } = SSO_CONFIG;
+  const { centerUrl, apiKey } = SSO_CONFIG;
 
-    try {
-        const response = await fetch(`${centerUrl}/api/v1/token`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-            },
-            body: JSON.stringify({
-                code,
-                redirect_uri: redirectUri
-            }),
-        });
+  try {
+    const response = await fetch(`${centerUrl}/api/v1/token`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        code,
+        redirect_uri: redirectUri,
+      }),
+    });
 
-        if (!response.ok) {
-            const error = await response.json();
-            console.error('SSO code exchange failed:', error);
-            return null;
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('SSO code exchange error:', error);
-        return null;
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("SSO code exchange failed:", error);
+      return null;
     }
+
+    return await response.json();
+  } catch (error) {
+    console.error("SSO code exchange error:", error);
+    return null;
+  }
 }
 
 /**
@@ -147,37 +183,37 @@ export async function exchangeCodeForUser(
  * Sprawdza czy użytkownik nie został wylogowany ze wszystkich urządzeń
  */
 export async function verifySessionWithCenter(
-    userId: string,
-    tokenVersion: number
+  userId: string,
+  tokenVersion: number,
 ): Promise<boolean> {
-    const { centerUrl, apiKey } = SSO_CONFIG;
+  const { centerUrl, apiKey } = SSO_CONFIG;
 
-    try {
-        const response = await fetch(`${centerUrl}/api/v1/session/verify`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-            },
-            body: JSON.stringify({
-                userId,
-                tokenVersion,
-            }),
-            cache: 'no-store',
-        });
+  try {
+    const response = await fetch(`${centerUrl}/api/v1/session/verify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        userId,
+        tokenVersion,
+      }),
+      cache: "no-store",
+    });
 
-        if (!response.ok) {
-            console.error('SSO session verification failed');
-            return false;
-        }
-
-        const result = await response.json();
-        return result.valid === true;
-    } catch (error) {
-        console.error('SSO session verification error:', error);
-        // Fail-open: w przypadku błędu sieci uznajemy sesję za ważną
-        return true;
+    if (!response.ok) {
+      console.error("SSO session verification failed");
+      return false;
     }
+
+    const result = await response.json();
+    return result.valid === true;
+  } catch (error) {
+    console.error("SSO session verification error:", error);
+    // Fail-open: w przypadku błędu sieci uznajemy sesję za ważną
+    return true;
+  }
 }
 
 // ============================================================================
@@ -188,5 +224,5 @@ export async function verifySessionWithCenter(
  * Generuje URL callbacku dla danego origin
  */
 export function getCallbackUrl(baseUrl: string): string {
-    return `${baseUrl}/api/auth/sso-callback`;
+  return `${baseUrl}/api/auth/sso-callback`;
 }
