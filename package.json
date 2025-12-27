@@ -17,8 +17,8 @@
     "test": "vitest",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test",
-    "test:all": "vitest run && playwright test",
+    "test:e2e": "tsx scripts/run-e2e.ts",
+    "test:all": "vitest run && tsx scripts/run-e2e.ts",
     "validate": "npm run typecheck && npm run lint && npm run test:unit && npm run build",
     "prepare": "husky"
   },
@@ -62,6 +62,7 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.1.2",
     "@vitest/coverage-v8": "^4.0.16",
+    "detect-port": "^2.1.0",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9",
     "eslint-config-next": "16.1.0",
