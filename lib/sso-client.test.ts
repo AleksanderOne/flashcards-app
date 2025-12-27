@@ -33,6 +33,13 @@ describe("SSO Client", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFetch.mockReset();
+    // Ustawiamy defaultCenterUrl dla testów
+    (SSO_CONFIG as any).defaultCenterUrl = "https://test-center.example.com";
+  });
+
+  afterEach(() => {
+    // Resetujemy do pustego stringa
+    (SSO_CONFIG as any).defaultCenterUrl = "";
   });
 
   describe("SSO_CONFIG", () => {
