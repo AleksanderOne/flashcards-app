@@ -1,4 +1,8 @@
 import { ReactNode } from "react";
+import { APP_VERSION } from "@/lib/version";
+
+// Stała roku - unika hydration mismatch w edge case gdy rok zmieni się między renderem
+const BUILD_YEAR = new Date().getFullYear();
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -58,9 +62,9 @@ export function PageLayout({
       {/* Footer - Fixed na całą szerokość */}
       <footer className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 bg-background/80 backdrop-blur-md md:left-72">
         <div className="container mx-auto px-4 py-2.5 flex items-center justify-center gap-3 text-xs text-muted-foreground/80">
-          <span>© {new Date().getFullYear()} Flashcards</span>
+          <span>© {BUILD_YEAR} Flashcards</span>
           <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
-          <span>v0.1.0</span>
+          <span>v{APP_VERSION}</span>
           <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
           <span>Wykonano z pasji przez AleksanderOne ❤️</span>
         </div>
