@@ -312,3 +312,227 @@ Ten workflow jest bardziej czasochłonny (npm audit i testy trwają dłużej), a
 1.  Przetwarzających dane osobowe (RODO/GDPR).
 2.  Obsługujących płatności.
 3.  Będących centralnymi punktami uwierzytelniania (jak `centrum-logowania-app`).
+
+## 8. Automatyzacja Wersjonowania (CI/CD)
+
+Wersjonowanie (Semantic Release) działa w pełni automatycznie, ale **WYMAGA serwera CI**, który uruchomi proces po zmergowaniu zmian do `main`. Samo zainstalowanie bibliotek lokalnie nie wystarczy.
+
+Skonfiguruj **GitHub Actions**, tworząc plik `.github/workflows/release.yml`:
+
+```yaml
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Build
+        env:
+          AUTH_SECRET: "dummy-secret-for-build-only"
+          NEXTAUTH_SECRET: "dummy-secret-for-build-only"
+          AUTH_TRUST_HOST: "true"
+        run: npm run build
+
+      - name: Run E2E tests
+        env:
+          AUTH_SECRET: "dummy-secret-for-build-only"
+          NEXTAUTH_SECRET: "dummy-secret-for-build-only"
+          AUTH_TRUST_HOST: "true"
+        run: npm run test:e2e
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HUSKY: "0"
+        run: npx semantic-release
+```
+
+### Jak to działa?
+
+1.  Programista robi Push do PR.
+2.  Review i Merge do `main`.
+3.  GitHub Actions uruchamia workflow `release.yml`.
+4.  Uruchamiane są testy i build (dla pewności).
+5.  `semantic-release` analizuje historię commitów (np. `feat: nowe logowanie` = minor bump, `fix: literówka` = patch bump).
+6.  Tworzony jest Git Tag, Release na GitHubie oraz aktualizowany plik `CHANGELOG.md`.
+
+To jest **jedyny** moment, kiedy wersja jest podbijana. Lokalnie wersja w `package.json` się nie zmienia.
+
+## 9. Konfiguracja Lintowania i Formatowania
+
+Aby kod był spójny i bezpieczny, zastosuj następujące konfiguracje.
+
+### `eslint.config.mjs`
+
+Zwróć uwagę na reguły `no-var`, `eqeqeq` oraz `prefer-const`.
+
+```javascript
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+import eslintConfigPrettier from "eslint-config-prettier";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  eslintConfigPrettier, // Wyłącza reguły konfliktujące z Prettier
+  {
+    rules: {
+      "prefer-const": "error",
+      "no-var": "error",
+      eqeqeq: ["error", "always"],
+      "no-empty": ["error", { allowEmptyCatch: false }],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+    },
+  },
+  globalIgnores([".next/**", "coverage/**", "test-results/**"]),
+]);
+
+export default eslintConfig;
+```
+
+### `.prettierrc`
+
+```json
+{
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "printWidth": 100,
+  "bracketSpacing": true,
+  "arrowParens": "always",
+  "endOfLine": "lf"
+}
+```
+
+### `tsconfig.json`
+
+Kluczowe: `strict: true`.
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"]
+}
+```
+
+## 10. Przydatne Skrypty (Opcjonalne)
+
+W katalogu `scripts/` warto trzymać pomocnicze narzędzia:
+
+- `test-db.ts`: Sprawdza połączenie z bazą danych (Postgres).
+- `setup-db.ts`: Tworzy wymagane schematy SQL przed startem aplikacji.
+
+## 11. Rekomendacje Dodatkowe (Dla Zwiększenia Bezpieczeństwa)
+
+Poniższe elementy nie występują domyślnie w każdej aplikacji, ale znacznie podnoszą standard bezpieczeństwa i jakość pracy (tzw. "Industry Best Practices").
+
+### 1. Walidacja Zmiennych Środowiskowych (Type-safe Env)
+
+Nigdy nie używaj `process.env.SECRET` bezpośrednio w kodzie. Jeśli zapomnisz dodać zmiennej w `.env`, aplikacja wybuchnie w losowym momencie.
+Użyj biblioteki `zod` lub `@t3-oss/env-nextjs`, aby zwalidować środowisko przy starcie.
+
+**Przykład pliku `src/env.mjs`:**
+
+```javascript
+import { z } from "zod";
+
+const envSchema = z.object({
+  DATABASE_URL: z.string().url(),
+  NEXTAUTH_SECRET: z.string().min(1),
+  NODE_ENV: z
+    .enum(["development", "test", "production"])
+    .default("development"),
+});
+
+const parsed = envSchema.safeParse(process.env);
+
+if (!parsed.success) {
+  console.error(
+    "❌ Invalid environment variables:",
+    parsed.error.flatten().fieldErrors,
+  );
+  process.exit(1);
+}
+
+export const env = parsed.data;
+```
+
+Dzięki temu masz pewność, że jeśli aplikacja wstała, to jest bezpieczna konfiguracyjnie.
+
+### 2. Szablony Pull Request (Code Review Standards)
+
+Aby wymusić na programistach sprawdzanie własnego kodu przed oddaniem do review, utwórz plik `.github/pull_request_template.md`.
+
+**Przykładowa zawartość:**
+
+```markdown
+## Opis zmian
+
+Co zostało zmienione i dlaczego?
+
+## Checklist
+
+- [ ] Testy jednostkowe przechodzą (npm run test:unit)
+- [ ] Testy E2E przechodzą lokalnie
+- [ ] Nowe funkcje mają dodane testy
+- [ ] Zmienne środowiskowe zostały zaktualizowane (jeśli dotyczy)
+- [ ] Brak sekretów/kluczy w kodzie
+```
+
+### 3. Automatyczne aktualizacje zależności
+
+Skonfiguruj **Dependabot** lub **Renovate**, aby automatycznie podbijał wersje bibliotek (szczególnie tych z łatkami bezpieczeństwa).
