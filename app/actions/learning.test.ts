@@ -76,6 +76,10 @@ describe("Learning Actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
+    // Wycisz console.error/warn żeby nie zaśmiecać output testów
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+
     // Reset mocków do domyślnych wartości
     (db.query.wordProgress.findFirst as any).mockResolvedValue(null);
     (checkAndUnlockAchievements as any).mockResolvedValue([]);
