@@ -10,12 +10,8 @@ import { redirect } from "next/navigation";
  * Sesja w centrum pozostaje aktywna (użytkownik nadal zalogowany w centrum).
  */
 export async function logout() {
-  console.log("[AUTH-ACTION] logout() wywołane");
-
   // Czyścimy sesję SSO (ciasteczko)
   await clearSSOSession();
-
-  console.log("[AUTH-ACTION] clearSSOSession() zakończone, przekierowuję...");
 
   // Przekierowujemy na stronę logowania
   redirect("/login");

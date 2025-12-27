@@ -123,29 +123,20 @@ export async function getSSOSession(): Promise<SSOSession | null> {
  * Usuwa sesję SSO (wylogowanie) i powiadamia centrum logowania
  */
 export async function clearSSOSession(): Promise<void> {
-  console.log("[SSO] clearSSOSession() wywołane");
-
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("sso-session");
-
-  console.log("[SSO] Sesja w ciasteczku:", sessionCookie ? "ISTNIEJE" : "BRAK");
 
   // Powiadom centrum logowania o wylogowaniu (jeśli mamy sesję)
   if (sessionCookie?.value) {
     try {
       const session: SSOSession = JSON.parse(sessionCookie.value);
-      console.log("[SSO] Parsowana sesja, userId:", session.userId);
       await logoutFromCenter(session.userId);
-    } catch (error) {
-      console.error("[SSO] Błąd parsowania sesji:", error);
+    } catch {
       // Ignoruj błędy - wylogowanie lokalne jest ważniejsze
     }
-  } else {
-    console.log("[SSO] Brak sesji do wylogowania z centrum");
   }
 
   cookieStore.delete("sso-session");
-  console.log("[SSO] Ciasteczko sso-session usunięte");
 }
 
 /**
@@ -153,17 +144,15 @@ export async function clearSSOSession(): Promise<void> {
  */
 export async function logoutFromCenter(userId: string): Promise<void> {
   const { clientId } = SSO_CONFIG;
+  // Pobieramy URL (w tym obsługa dev port)
   const centerUrl = await getCenterUrl();
 
-  console.log("[SSO] Wylogowanie z centrum:", { centerUrl, clientId, userId });
-
   if (!centerUrl) {
-    console.warn("[SSO] Brak centerUrl - nie można wylogować z centrum");
-    return;
+    return; // Brak konfiguracji
   }
 
   try {
-    const response = await fetch(`${centerUrl}/api/v1/public/logout`, {
+    await fetch(`${centerUrl}/api/v1/public/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -172,11 +161,6 @@ export async function logoutFromCenter(userId: string): Promise<void> {
         userId,
         projectSlug: clientId,
       }),
-    });
-
-    console.log("[SSO] Odpowiedź z centrum:", {
-      status: response.status,
-      ok: response.ok,
     });
   } catch (error) {
     console.warn("[SSO] Błąd wylogowania z centrum:", error);
