@@ -1,160 +1,225 @@
-import { pgSchema, text, timestamp, uuid, varchar, integer, boolean, real, date, jsonb, index } from 'drizzle-orm/pg-core';
+import {
+  pgSchema,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+  integer,
+  boolean,
+  real,
+  date,
+  jsonb,
+  index,
+} from "drizzle-orm/pg-core";
 
 // Schemat flashcards dla multi-schema architecture
-export const flashcardsSchema = pgSchema('flashcards');
+export const flashcardsSchema = pgSchema("flashcards");
 
 // Enums w schemacie flashcards
-export const levelEnum = flashcardsSchema.enum('level', ['A1', 'A2', 'B1', 'B2', 'C1']);
-export const learningModeEnum = flashcardsSchema.enum('learning_mode', [
-    'pl_to_en_text',
-    'en_to_pl_text',
-    'pl_to_en_quiz',
-    'en_to_pl_quiz'
+export const levelEnum = flashcardsSchema.enum("level", [
+  "A1",
+  "A2",
+  "B1",
+  "B2",
+  "C1",
 ]);
-export const userRoleEnum = flashcardsSchema.enum('user_role', ['user', 'admin']);
+export const learningModeEnum = flashcardsSchema.enum("learning_mode", [
+  "pl_to_en_text",
+  "en_to_pl_text",
+  "pl_to_en_quiz",
+  "en_to_pl_quiz",
+]);
+export const userRoleEnum = flashcardsSchema.enum("user_role", [
+  "user",
+  "admin",
+]);
 
-// Users - NextAuth tabele
-export const users = flashcardsSchema.table('users', {
-    id: varchar('id', { length: 255 }).primaryKey(),
-    name: varchar('name', { length: 255 }),
-    email: varchar('email', { length: 255 }).notNull().unique(),
-    emailVerified: timestamp('email_verified'),
-    image: text('image'),
-    password: text('password'), // dla email/password auth
-    role: userRoleEnum('role').default('user').notNull(),
-    isBlocked: boolean('is_blocked').default(false).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+// Users - tabela użytkowników (auth przez SSO)
+export const users = flashcardsSchema.table("users", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  name: varchar("name", { length: 255 }),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  emailVerified: timestamp("email_verified"),
+  image: text("image"),
+  role: userRoleEnum("role").default("user").notNull(),
+  isBlocked: boolean("is_blocked").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const accounts = flashcardsSchema.table('accounts', {
-    id: varchar('id', { length: 255 }).primaryKey(),
-    userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-    type: varchar('type', { length: 255 }).notNull(),
-    provider: varchar('provider', { length: 255 }).notNull(),
-    providerAccountId: varchar('provider_account_id', { length: 255 }).notNull(),
-    refresh_token: text('refresh_token'),
-    access_token: text('access_token'),
-    expires_at: integer('expires_at'),
-    token_type: varchar('token_type', { length: 255 }),
-    scope: varchar('scope', { length: 255 }),
-    id_token: text('id_token'),
-    session_state: varchar('session_state', { length: 255 }),
+export const accounts = flashcardsSchema.table("accounts", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 })
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: varchar("type", { length: 255 }).notNull(),
+  provider: varchar("provider", { length: 255 }).notNull(),
+  providerAccountId: varchar("provider_account_id", { length: 255 }).notNull(),
+  refresh_token: text("refresh_token"),
+  access_token: text("access_token"),
+  expires_at: integer("expires_at"),
+  token_type: varchar("token_type", { length: 255 }),
+  scope: varchar("scope", { length: 255 }),
+  id_token: text("id_token"),
+  session_state: varchar("session_state", { length: 255 }),
 });
 
-export const sessions = flashcardsSchema.table('sessions', {
-    id: varchar('id', { length: 255 }).primaryKey(),
-    sessionToken: varchar('session_token', { length: 255 }).notNull().unique(),
-    userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-    expires: timestamp('expires').notNull(),
+export const sessions = flashcardsSchema.table("sessions", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  sessionToken: varchar("session_token", { length: 255 }).notNull().unique(),
+  userId: varchar("user_id", { length: 255 })
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expires: timestamp("expires").notNull(),
 });
 
-export const verificationTokens = flashcardsSchema.table('verification_tokens', {
-    identifier: varchar('identifier', { length: 255 }).notNull(),
-    token: varchar('token', { length: 255 }).notNull().unique(),
-    expires: timestamp('expires').notNull(),
-});
+export const verificationTokens = flashcardsSchema.table(
+  "verification_tokens",
+  {
+    identifier: varchar("identifier", { length: 255 }).notNull(),
+    token: varchar("token", { length: 255 }).notNull().unique(),
+    expires: timestamp("expires").notNull(),
+  },
+);
 
 // Słówka systemowe (baza aplikacji) i słówka dodane przez użytkowników po zatwierdzeniu
-export const words = flashcardsSchema.table('words', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    english: text('english').notNull(),
-    polish: text('polish').notNull(),
-    level: levelEnum('level').notNull(),
-    category: text('category').notNull(),
-    imageUrl: text('image_url'),
-    createdBy: varchar('created_by', { length: 255 }).references(() => users.id, { onDelete: 'set null' }), // null = system, userId = user-created
-    isApproved: boolean('is_approved').default(true).notNull(), // domyślnie true dla słówek systemowych
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => ({
+export const words = flashcardsSchema.table(
+  "words",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    english: text("english").notNull(),
+    polish: text("polish").notNull(),
+    level: levelEnum("level").notNull(),
+    category: text("category").notNull(),
+    imageUrl: text("image_url"),
+    createdBy: varchar("created_by", { length: 255 }).references(
+      () => users.id,
+      { onDelete: "set null" },
+    ), // null = system, userId = user-created
+    isApproved: boolean("is_approved").default(true).notNull(), // domyślnie true dla słówek systemowych
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
     // Indeksy dla często używanych kolumn w wyszukiwaniu i filtrowaniu
-    levelIdx: index('words_level_idx').on(table.level),
-    categoryIdx: index('words_category_idx').on(table.category),
-    approvedIdx: index('words_approved_idx').on(table.isApproved),
-    englishIdx: index('words_english_idx').on(table.english),
-}));
+    levelIdx: index("words_level_idx").on(table.level),
+    categoryIdx: index("words_category_idx").on(table.category),
+    approvedIdx: index("words_approved_idx").on(table.isApproved),
+    englishIdx: index("words_english_idx").on(table.english),
+  }),
+);
 
 // Własne słówka użytkownika (prywatna kolekcja)
-export const customWords = flashcardsSchema.table('custom_words', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-    english: text('english').notNull(),
-    polish: text('polish').notNull(),
-    level: levelEnum('level').notNull(),
-    category: text('category').notNull(),
-    imageUrl: text('image_url'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+export const customWords = flashcardsSchema.table("custom_words", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: varchar("user_id", { length: 255 })
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  english: text("english").notNull(),
+  polish: text("polish").notNull(),
+  level: levelEnum("level").notNull(),
+  category: text("category").notNull(),
+  imageUrl: text("image_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Statystyki nauki - każda odpowiedź
-export const learningSessions = flashcardsSchema.table('learning_sessions', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-    wordEnglish: text('word_english').notNull(),
-    wordPolish: text('word_polish').notNull(),
-    isCorrect: boolean('is_correct').notNull(),
-    learningMode: learningModeEnum('learning_mode').notNull(),
-    level: levelEnum('level').notNull(),
-    category: text('category').notNull(),
-    timeSpentMs: integer('time_spent_ms').notNull(), // czas na odpowiedź w ms
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+export const learningSessions = flashcardsSchema.table("learning_sessions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: varchar("user_id", { length: 255 })
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  wordEnglish: text("word_english").notNull(),
+  wordPolish: text("word_polish").notNull(),
+  isCorrect: boolean("is_correct").notNull(),
+  learningMode: learningModeEnum("learning_mode").notNull(),
+  level: levelEnum("level").notNull(),
+  category: text("category").notNull(),
+  timeSpentMs: integer("time_spent_ms").notNull(), // czas na odpowiedź w ms
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Spaced repetition tracking
-export const wordProgress = flashcardsSchema.table('word_progress', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-    wordEnglish: text('word_english').notNull(),
-    repetitions: integer('repetitions').default(0).notNull(), // ile razy powtórzone
-    easinessFactor: real('easiness_factor').default(2.5).notNull(), // SM-2 algorithm
-    interval: integer('interval').default(0).notNull(), // dni do następnej powtórki
-    nextReviewDate: timestamp('next_review_date'),
-    lastReviewed: timestamp('last_reviewed'),
-    difficultyRating: integer('difficulty_rating'), // 1-5 (1=bardzo łatwe, 5=bardzo trudne)
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+export const wordProgress = flashcardsSchema.table(
+  "word_progress",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    wordEnglish: text("word_english").notNull(),
+    repetitions: integer("repetitions").default(0).notNull(), // ile razy powtórzone
+    easinessFactor: real("easiness_factor").default(2.5).notNull(), // SM-2 algorithm
+    interval: integer("interval").default(0).notNull(), // dni do następnej powtórki
+    nextReviewDate: timestamp("next_review_date"),
+    lastReviewed: timestamp("last_reviewed"),
+    difficultyRating: integer("difficulty_rating"), // 1-5 (1=bardzo łatwe, 5=bardzo trudne)
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    // Indeksy dla szybszego wyszukiwania postępów użytkownika
+    userIdIdx: index("word_progress_user_id_idx").on(table.userId),
+    userWordIdx: index("word_progress_user_word_idx").on(
+      table.userId,
+      table.wordEnglish,
+    ),
+    nextReviewIdx: index("word_progress_next_review_idx").on(
+      table.nextReviewDate,
+    ),
+  }),
+);
 
 // Osiągnięcia
-export const achievements = flashcardsSchema.table('achievements', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-    type: text('type').notNull(), // "category_completed", "100_words", "7_day_streak", etc.
-    level: text('level'),
-    category: text('category'),
-    metadata: jsonb('metadata'), // dodatkowe dane (score, czas, etc.)
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+export const achievements = flashcardsSchema.table("achievements", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: varchar("user_id", { length: 255 })
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // "category_completed", "100_words", "7_day_streak", etc.
+  level: text("level"),
+  category: text("category"),
+  metadata: jsonb("metadata"), // dodatkowe dane (score, czas, etc.)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Daily streak tracking
-export const userStats = flashcardsSchema.table('user_stats', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
-    currentStreak: integer('current_streak').default(0).notNull(),
-    longestStreak: integer('longest_streak').default(0).notNull(),
-    totalWordsLearned: integer('total_words_learned').default(0).notNull(),
-    totalSessions: integer('total_sessions').default(0).notNull(),
-    totalTimeMs: integer('total_time_ms').default(0).notNull(), // całkowity czas nauki w ms
-    lastActiveDate: date('last_active_date'),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+export const userStats = flashcardsSchema.table("user_stats", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: varchar("user_id", { length: 255 })
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+  currentStreak: integer("current_streak").default(0).notNull(),
+  longestStreak: integer("longest_streak").default(0).notNull(),
+  totalWordsLearned: integer("total_words_learned").default(0).notNull(),
+  totalSessions: integer("total_sessions").default(0).notNull(),
+  totalTimeMs: integer("total_time_ms").default(0).notNull(), // całkowity czas nauki w ms
+  lastActiveDate: date("last_active_date"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Ustawienia aplikacji (singleton - jeden rekord)
-export const appSettings = flashcardsSchema.table('app_settings', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    contactEmail: varchar('contact_email', { length: 255 }).notNull().default('kontakt@flashcards.pl'),
-    emailNotificationsEnabled: boolean('email_notifications_enabled').default(true).notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-    updatedBy: varchar('updated_by', { length: 255 }).references(() => users.id, { onDelete: 'set null' }),
+export const appSettings = flashcardsSchema.table("app_settings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  contactEmail: varchar("contact_email", { length: 255 })
+    .notNull()
+    .default("kontakt@flashcards.pl"),
+  emailNotificationsEnabled: boolean("email_notifications_enabled")
+    .default(true)
+    .notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedBy: varchar("updated_by", { length: 255 }).references(() => users.id, {
+    onDelete: "set null",
+  }),
 });
 
 // Wiadomości kontaktowe
-export const contactMessages = flashcardsSchema.table('contact_messages', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    firstName: varchar('first_name', { length: 100 }).notNull(),
-    lastName: varchar('last_name', { length: 100 }).notNull(),
-    email: varchar('email', { length: 255 }).notNull(),
-    phone: varchar('phone', { length: 20 }),
-    message: text('message').notNull(),
-    isRead: boolean('is_read').default(false).notNull(),
-    emailSent: boolean('email_sent').default(false).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+export const contactMessages = flashcardsSchema.table("contact_messages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  firstName: varchar("first_name", { length: 100 }).notNull(),
+  lastName: varchar("last_name", { length: 100 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 20 }),
+  message: text("message").notNull(),
+  isRead: boolean("is_read").default(false).notNull(),
+  emailSent: boolean("email_sent").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });

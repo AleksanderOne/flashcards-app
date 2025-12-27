@@ -15,6 +15,13 @@
       "when": 1766775861995,
       "tag": "0001_natural_stellaris",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1766799001321,
+      "tag": "0002_overconfident_drax",
+      "breakpoints": true
     }
   ]
 }
