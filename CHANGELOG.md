@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/AleksanderOne/flashcards-app/compare/v1.3.0...v1.4.0) (2025-12-27)
+
+
+### Features
+
+* **dev:** panel deweloperski do dynamicznej zmiany portu SSO ([8b1d451](https://github.com/AleksanderOne/flashcards-app/commit/8b1d45183ea01ef36478ac06106ce9446b51ec22))
+
 # [1.3.0](https://github.com/AleksanderOne/flashcards-app/compare/v1.2.0...v1.3.0) (2025-12-27)
 
 
