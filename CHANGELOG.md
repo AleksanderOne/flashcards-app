@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/AleksanderOne/flashcards-app/compare/v1.2.0...v1.3.0) (2025-12-27)
+
+
+### Features
+
+* **sso:** dodaj powiadamianie centrum logowania przy wylogowaniu ([cd2f2bb](https://github.com/AleksanderOne/flashcards-app/commit/cd2f2bbe6003a0d6f04dd3d1deb2d33688b6646e))
+
 # [1.2.0](https://github.com/AleksanderOne/flashcards-app/compare/v1.1.0...v1.2.0) (2025-12-27)
 
 
