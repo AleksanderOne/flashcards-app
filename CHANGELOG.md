@@ -1,3 +1,16 @@
+# [1.1.0](https://github.com/AleksanderOne/flashcards-app/compare/v1.0.0...v1.1.0) (2025-12-27)
+
+
+### Features
+
+* **e2e:** dynamiczny port dla testów E2E z automatycznym wykrywaniem ([763c00d](https://github.com/AleksanderOne/flashcards-app/commit/763c00de1654d9f9f6036c5587b5fb8e41fa33a0))
+* **security:** dodanie walidacji Zod dla akcji nauki ([cf94fb3](https://github.com/AleksanderOne/flashcards-app/commit/cf94fb3258e98b510aec4e69d9fc2dfd1c0a2fdb))
+
+
+### Performance Improvements
+
+* **db:** optymalizacja bazy danych i usunięcie pola password ([c77565c](https://github.com/AleksanderOne/flashcards-app/commit/c77565cdc49c963ad74a98ee78b505b20d0c87f8))
+
 # 1.0.0 (2025-12-27)
 
 
