@@ -1,3 +1,15 @@
+# [1.2.0](https://github.com/AleksanderOne/flashcards-app/compare/v1.1.0...v1.2.0) (2025-12-27)
+
+
+### Bug Fixes
+
+* **lint:** naprawienie wszystkich ESLint warnings ([aadf166](https://github.com/AleksanderOne/flashcards-app/commit/aadf1669a94b9c814db201d3fec29fef9b068dc4))
+
+
+### Features
+
+* **e2e:** automatyczne wykrywanie wolnego portu przez globalSetup ([7c557db](https://github.com/AleksanderOne/flashcards-app/commit/7c557dbedf745a09b109850c8176e307c7ada62f))
+
 # [1.1.0](https://github.com/AleksanderOne/flashcards-app/compare/v1.0.0...v1.1.0) (2025-12-27)
 
 
