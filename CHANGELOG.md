@@ -1,3 +1,16 @@
+# [2.1.0](https://github.com/AleksanderOne/flashcards-app/compare/v2.0.0...v2.1.0) (2025-12-28)
+
+
+### Bug Fixes
+
+* **setup:** url centrum logowania jest teraz wymagane ([3fff576](https://github.com/AleksanderOne/flashcards-app/commit/3fff576a63b3460aea08cb3e5a014400581e542e))
+* **sso:** naprawa konfiguracji i flow logowania ([6fc22e7](https://github.com/AleksanderOne/flashcards-app/commit/6fc22e73e2b29a734979549b33e547c75f1e9d85))
+
+
+### Features
+
+* **login:** przycisk rekonfiguracji SSO gdy połączenie nie działa ([a533428](https://github.com/AleksanderOne/flashcards-app/commit/a533428ac78ea1dd1d011d1dd740d8db6da5e665))
+
 # [2.0.0](https://github.com/AleksanderOne/flashcards-app/compare/v1.4.0...v2.0.0) (2025-12-28)
 
 
