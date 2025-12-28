@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +17,6 @@ import {
 
 export function DisconnectButton() {
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleDisconnect = async () => {
     setLoading(true);
@@ -28,14 +26,24 @@ export function DisconnectButton() {
       });
 
       if (response.ok) {
-        // Force refresh to update UI
-        router.refresh();
+        // Po usunięciu konfiguracji SSO musimy wylogować użytkownika
+        // Jego sesja odnosi się do nieistniejącego już projektu
+        await fetch("/api/auth/sso-logout", { method: "POST" });
+
+        // Wyczyść wszystkie lokalne dane aplikacji
+        if (typeof window !== "undefined") {
+          localStorage.clear();
+          sessionStorage.clear();
+        }
+
+        // Przekieruj na stronę logowania (hard redirect by wyczyścić stan)
+        window.location.href = "/login";
       } else {
         console.error("Failed to disconnect");
+        setLoading(false);
       }
     } catch (error) {
       console.error("Error disconnecting:", error);
-    } finally {
       setLoading(false);
     }
   };

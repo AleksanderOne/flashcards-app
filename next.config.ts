@@ -1,9 +1,22 @@
 import type { NextConfig } from "next";
+import { readFileSync } from "fs";
+import { join } from "path";
+
+// Pobierz wersję z package.json
+const packageJson = JSON.parse(
+  readFileSync(join(process.cwd(), "package.json"), "utf-8"),
+);
+const appVersion = packageJson.version || "unknown";
 
 // Wykrywanie środowiska
 const isProduction = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
+  // Eksportuj wersję aplikacji do klienta
+  env: {
+    NEXT_PUBLIC_APP_VERSION: appVersion,
+  },
+
   images: {
     remotePatterns: [
       {

@@ -29,7 +29,7 @@ function LoginContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [ssoHealthy, setSsoHealthy] = useState<boolean | null>(null);
-  const [showReconfigure, setShowReconfigure] = useState(false);
+
   const [ssoConfig, setSsoConfig] = useState<{
     centerUrl?: string;
     projectSlug?: string;
@@ -61,13 +61,8 @@ function LoginContent() {
             projectSlug: data.projectSlug,
           });
         }
-        // Pokaż przycisk rekonfiguracji jeśli SSO nie skonfigurowane lub nie działa
-        if (!data.configured || !data.healthy) {
-          setShowReconfigure(true);
-        }
       } catch {
         setSsoHealthy(false);
-        setShowReconfigure(true);
       }
     }
     checkSSOHealth();
@@ -85,8 +80,6 @@ function LoginContent() {
         project_not_found: "Projekt nie istnieje w centrum logowania.",
       };
       setError(errorMessages[errorParam] || "Wystąpił nieznany błąd.");
-      // Pokaż przycisk rekonfiguracji przy błędzie
-      setShowReconfigure(true);
     }
   }, [searchParams]);
 
@@ -193,31 +186,26 @@ function LoginContent() {
             </div>
           </div>
 
-          {/* Przycisk rekonfiguracji SSO - widoczny gdy problemy z połączeniem */}
-          {showReconfigure && (
-            <div className="flex flex-col items-center gap-3 p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
-              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
-                <AlertCircle className="h-4 w-4" />
-                <span className="text-sm font-medium">
-                  Problemy z logowaniem?
-                </span>
-              </div>
-              <p className="text-xs text-amber-600 dark:text-amber-500 text-center">
-                {ssoHealthy === false
-                  ? "Nie można połączyć się z centrum logowania. Możesz skonfigurować połączenie ponownie."
-                  : "Jeśli logowanie nie działa, możesz zrekonfigurować połączenie SSO."}
-              </p>
-              <Link href="/setup" className="w-full">
-                <Button
-                  variant="outline"
-                  className="w-full border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30"
-                >
-                  <Settings2 className="mr-2 h-4 w-4" />
-                  Rekonfiguruj SSO
-                </Button>
-              </Link>
+          {/* Przycisk rekonfiguracji SSO - zawsze widoczny */}
+          <div className="flex flex-col items-center gap-3 p-4 rounded-lg bg-muted/50 border border-muted">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Settings2 className="h-4 w-4" />
+              <span className="text-sm font-medium">
+                Konfiguracja połączenia
+              </span>
             </div>
-          )}
+            <p className="text-xs text-muted-foreground text-center">
+              {ssoHealthy === false
+                ? "Nie można połączyć się z centrum logowania."
+                : "Jeśli masz problemy z logowaniem, możesz zrekonfigurować połączenie SSO."}
+            </p>
+            <Link href="/setup" className="w-full">
+              <Button variant="outline" className="w-full">
+                <Settings2 className="mr-2 h-4 w-4" />
+                Rekonfiguruj SSO
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
 
