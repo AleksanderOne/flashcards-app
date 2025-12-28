@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/AleksanderOne/flashcards-app/compare/v2.1.0...v2.2.0) (2025-12-28)
+
+
+### Features
+
+* **auth:** naprawa rozłączania SSO i wersjonowanie aplikacji ([d706cd9](https://github.com/AleksanderOne/flashcards-app/commit/d706cd9ae21d9cb364e7545f5aeb094e96a8a7ef))
+
 # [2.1.0](https://github.com/AleksanderOne/flashcards-app/compare/v2.0.0...v2.1.0) (2025-12-28)
 
 
