@@ -30,6 +30,10 @@ function LoginContent() {
   const [error, setError] = useState("");
   const [ssoHealthy, setSsoHealthy] = useState<boolean | null>(null);
   const [showReconfigure, setShowReconfigure] = useState(false);
+  const [ssoConfig, setSsoConfig] = useState<{
+    centerUrl?: string;
+    projectSlug?: string;
+  }>({});
   const searchParams = useSearchParams();
   const isDev = process.env.NODE_ENV === "development";
 
@@ -49,8 +53,16 @@ function LoginContent() {
         const response = await fetch("/api/sso-health");
         const data = await response.json();
         setSsoHealthy(data.healthy);
-        // Pokaż przycisk rekonfiguracji jeśli SSO nie działa
-        if (!data.healthy) {
+        // Zapisz konfigurację SSO do użycia przy logowaniu
+        // Zapisujemy NIEZALEŻNIE od healthy - liczy się że konfiguracja istnieje
+        if (data.configured && data.centerUrl && data.projectSlug) {
+          setSsoConfig({
+            centerUrl: data.centerUrl,
+            projectSlug: data.projectSlug,
+          });
+        }
+        // Pokaż przycisk rekonfiguracji jeśli SSO nie skonfigurowane lub nie działa
+        if (!data.configured || !data.healthy) {
           setShowReconfigure(true);
         }
       } catch {
@@ -94,11 +106,15 @@ function LoginContent() {
 
     const callbackUrl = encodeURIComponent(`${baseUrl}/api/auth/sso-callback`);
 
-    // Pobieramy konfigurację
+    // Pobieramy konfigurację - priorytet: 1) z bazy (ssoConfig), 2) z .env, 3) fallback
     let centerUrl =
+      ssoConfig.centerUrl ||
       process.env.NEXT_PUBLIC_SSO_CENTER_URL ||
       "https://centrum-logowania-app-y7gt.vercel.app";
-    const clientId = process.env.NEXT_PUBLIC_SSO_CLIENT_ID || "flashcards-uk61";
+    const clientId =
+      ssoConfig.projectSlug ||
+      process.env.NEXT_PUBLIC_SSO_CLIENT_ID ||
+      "flashcards"; // Fallback tylko jako ostateczność
 
     // DEV: Nadpisanie URL jeśli zdefiniowano port w ciasteczku
     if (isDev) {

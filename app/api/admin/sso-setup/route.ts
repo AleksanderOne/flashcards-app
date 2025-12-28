@@ -4,17 +4,6 @@ import { ssoConfig, users } from "@/lib/db/schema";
 import { getSSOSession, invalidateSSOConfigCache } from "@/lib/sso-client";
 import { eq } from "drizzle-orm";
 
-// Interfejs odpowiedzi z Centrum Logowania (claim)
-interface ClaimResponse {
-  success: boolean;
-  project: {
-    slug: string;
-    name: string;
-    apiKey: string;
-  };
-  centerUrl: string;
-}
-
 /**
  * POST /api/admin/sso-setup
  * Konfiguracja SSO przez Setup Code z Centrum Logowania
@@ -90,18 +79,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const claimData: ClaimResponse = await claimResponse.json();
+    const claimData = await claimResponse.json();
+
+    // Walidacja - CLA zwraca płaską strukturę: { apiKey, slug, centerUrl, projectName }
+    if (!claimData.apiKey || !claimData.slug) {
+      console.error(
+        "[SSO Setup] Nieprawidłowa struktura odpowiedzi:",
+        claimData,
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Nieprawidłowa odpowiedź z Centrum Logowania",
+        },
+        { status: 500 },
+      );
+    }
 
     // 4. Zapisz odpowiedź w tabeli ssoConfig
     // Najpierw usuń starą konfigurację (singleton)
     await db.delete(ssoConfig);
 
-    // Dodaj nową konfigurację
+    // Dodaj nową konfigurację (używamy płaskiej struktury z CLA)
     await db.insert(ssoConfig).values({
-      apiKey: claimData.project.apiKey,
-      projectSlug: claimData.project.slug,
+      apiKey: claimData.apiKey,
+      projectSlug: claimData.slug,
       centerUrl: claimData.centerUrl || centerUrl,
-      projectName: claimData.project.name,
+      projectName: claimData.projectName,
       configuredBy: session.userId,
     });
 
@@ -111,9 +115,9 @@ export async function POST(request: NextRequest) {
     // 6. Zwróć sukces
     return NextResponse.json({
       success: true,
-      message: `Połączono z projektem: ${claimData.project.name}`,
-      projectName: claimData.project.name,
-      projectSlug: claimData.project.slug,
+      message: `Połączono z projektem: ${claimData.projectName}`,
+      projectName: claimData.projectName,
+      projectSlug: claimData.slug,
     });
   } catch (error) {
     console.error("[SSO Setup] Error:", error);

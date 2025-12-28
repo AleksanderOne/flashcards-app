@@ -3,36 +3,56 @@ import { db } from "@/lib/db/drizzle";
 import { ssoConfig } from "@/lib/db/schema";
 import { invalidateSSOConfigCache } from "@/lib/sso-client";
 
-// Interfejs odpowiedzi z Centrum Logowania (claim)
-interface ClaimResponse {
-  success: boolean;
-  project: {
-    slug: string;
-    name: string;
-    apiKey: string;
-  };
-  centerUrl: string;
+/**
+ * Sprawdza czy centrum logowania odpowiada
+ */
+async function checkSSOHealth(centerUrl: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${centerUrl}/api/v1/health`, {
+      method: "GET",
+      cache: "no-store",
+      signal: AbortSignal.timeout(5000),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 /**
  * POST /api/setup
  * Publiczny endpoint do konfiguracji startowej (BOOTSTRAP)
- * Działa tylko gdy w bazie NIE MA jeszcze konfiguracji.
+ * Działa gdy:
+ * - W bazie NIE MA jeszcze konfiguracji
+ * - LUB istniejąca konfiguracja nie działa (health check fail)
  */
 export async function POST(request: NextRequest) {
   try {
-    // 0. Sprawdź czy konfiguracja już istnieje (SECURITY)
-    // Nie pozwalamy na nadpisanie konfiguracji przez publiczny endpoint
+    // 0. Sprawdź czy konfiguracja już istnieje
     const existingConfig = await db.query.ssoConfig.findFirst();
+
     if (existingConfig) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "Aplikacja jest już skonfigurowana. Użyj panelu admina do zmian.",
-        },
-        { status: 403 },
+      // Konfiguracja istnieje - sprawdź czy działa
+      const isHealthy = await checkSSOHealth(existingConfig.centerUrl);
+
+      if (isHealthy) {
+        // SSO działa - blokuj rekonfigurację przez publiczny endpoint
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Aplikacja jest już skonfigurowana i działa poprawnie. Użyj panelu admina do zmian.",
+          },
+          { status: 403 },
+        );
+      }
+
+      // SSO nie działa - pozwól na rekonfigurację
+      console.log(
+        "[Setup Bootstrap] SSO nie działa - zezwalam na rekonfigurację",
       );
+      // Usuń starą konfigurację
+      await db.delete(ssoConfig);
     }
 
     // 1. Pobierz dane
@@ -81,14 +101,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const claimData: ClaimResponse = await claimResponse.json();
+    const claimData = await claimResponse.json();
 
-    // 3. Zapisz w bazie
+    // Debug: loguj odpowiedź z CLA
+    console.log(
+      "[Setup Bootstrap] ClaimData:",
+      JSON.stringify(claimData, null, 2),
+    );
+
+    // Walidacja struktury odpowiedzi
+    // CLA zwraca płaską strukturę: { apiKey, slug, centerUrl, projectName }
+    if (!claimData.apiKey || !claimData.slug) {
+      console.error(
+        "[Setup Bootstrap] Nieprawidłowa struktura odpowiedzi:",
+        claimData,
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Nieprawidłowa odpowiedź z Centrum Logowania. Sprawdź wersję CLA.",
+          debug: claimData,
+        },
+        { status: 500 },
+      );
+    }
+
+    // 3. Zapisz w bazie (używamy płaskiej struktury z CLA)
     await db.insert(ssoConfig).values({
-      apiKey: claimData.project.apiKey,
-      projectSlug: claimData.project.slug,
+      apiKey: claimData.apiKey,
+      projectSlug: claimData.slug,
       centerUrl: claimData.centerUrl || centerUrl,
-      projectName: claimData.project.name,
+      projectName: claimData.projectName,
       // configuredBy: null - bo to bootstrap, nie mamy jeszcze usera
     });
 
