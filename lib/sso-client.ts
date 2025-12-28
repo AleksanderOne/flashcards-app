@@ -2,20 +2,89 @@
  * SSO Client - minimalna integracja z Centrum Logowania
  *
  * Ten plik zawiera całą logikę potrzebną do integracji z SSO centrum.
- * Wymagane zmienne środowiskowe:
- * - SSO_CENTER_URL (serwer)
- * - SSO_CLIENT_ID (serwer)
- * - SSO_API_KEY (serwer, tylko dla API routes)
- * - NEXT_PUBLIC_SSO_CENTER_URL (klient)
- * - NEXT_PUBLIC_SSO_CLIENT_ID (klient)
+ * Konfiguracja jest pobierana z bazy danych (tabela sso_config).
+ * Fallback na zmienne środowiskowe dla kompatybilności wstecznej.
  */
 
 import { cookies } from "next/headers";
+import { db } from "@/lib/db/drizzle";
 
 // ============================================================================
-// KONFIGURACJA
+// TYPY KONFIGURACJI
 // ============================================================================
 
+interface SSOConfigData {
+  apiKey: string;
+  projectSlug: string;
+  centerUrl: string;
+}
+
+// ============================================================================
+// KONFIGURACJA - DYNAMICZNA Z BAZY DANYCH
+// ============================================================================
+
+// Cache dla konfiguracji (żeby nie odpytywać bazy przy każdym request)
+let cachedConfig: SSOConfigData | null = null;
+
+/**
+ * Pobiera konfigurację SSO z bazy danych.
+ * Fallback na zmienne środowiskowe jeśli brak konfiguracji w bazie.
+ */
+async function getConfig(): Promise<SSOConfigData> {
+  // Spróbuj pobrać z bazy
+  try {
+    const dbConfig = await db.query.ssoConfig.findFirst();
+
+    if (dbConfig) {
+      return {
+        apiKey: dbConfig.apiKey,
+        projectSlug: dbConfig.projectSlug,
+        centerUrl: dbConfig.centerUrl,
+      };
+    }
+  } catch (error) {
+    console.warn("[SSO] Nie można pobrać konfiguracji z bazy:", error);
+  }
+
+  // Fallback na .env (dla kompatybilności wstecznej)
+  return {
+    apiKey: process.env.SSO_API_KEY || "",
+    projectSlug:
+      process.env.SSO_CLIENT_ID || process.env.NEXT_PUBLIC_SSO_CLIENT_ID || "",
+    centerUrl:
+      process.env.SSO_CENTER_URL ||
+      process.env.NEXT_PUBLIC_SSO_CENTER_URL ||
+      "",
+  };
+}
+
+/**
+ * Pobiera konfigurację SSO (z cache lub bazy)
+ */
+export async function getSSOConfig(): Promise<SSOConfigData> {
+  if (!cachedConfig) {
+    cachedConfig = await getConfig();
+  }
+  return cachedConfig;
+}
+
+/**
+ * Invaliduje cache konfiguracji SSO (po zmianie w bazie)
+ */
+export function invalidateSSOConfigCache(): void {
+  cachedConfig = null;
+}
+
+// Dla statycznych wartości (nie zależą od bazy)
+export const SSO_STATIC_CONFIG = {
+  // Czas życia sesji (30 dni w ms)
+  sessionMaxAge: 30 * 24 * 60 * 60 * 1000,
+
+  // Czas między weryfikacjami Kill Switch (5 minut)
+  verifyInterval: 5 * 60 * 1000,
+};
+
+// Dla kompatybilności wstecznej - deprecated, użyj getSSOConfig()
 export const SSO_CONFIG = {
   // Domyślny URL (fallback)
   defaultCenterUrl:
@@ -29,10 +98,10 @@ export const SSO_CONFIG = {
   apiKey: process.env.SSO_API_KEY || "",
 
   // Czas życia sesji (30 dni w ms)
-  sessionMaxAge: 30 * 24 * 60 * 60 * 1000,
+  sessionMaxAge: SSO_STATIC_CONFIG.sessionMaxAge,
 
   // Czas między weryfikacjami Kill Switch (5 minut)
-  verifyInterval: 5 * 60 * 1000,
+  verifyInterval: SSO_STATIC_CONFIG.verifyInterval,
 };
 
 /**
@@ -40,7 +109,8 @@ export const SSO_CONFIG = {
  * W trybie development sprawdza ciasteczko `dev-sso-port` aby nadpisać port.
  */
 async function getCenterUrl(): Promise<string> {
-  const defaultUrl = SSO_CONFIG.defaultCenterUrl;
+  const config = await getSSOConfig();
+  const defaultUrl = config.centerUrl;
 
   // Tylko w trybie development
   if (process.env.NODE_ENV === "development") {
@@ -143,7 +213,8 @@ export async function clearSSOSession(): Promise<void> {
  * Informuje centrum logowania o wylogowaniu użytkownika
  */
 export async function logoutFromCenter(userId: string): Promise<void> {
-  const { clientId } = SSO_CONFIG;
+  const config = await getSSOConfig();
+  const { projectSlug: clientId } = config;
   // Pobieramy URL (w tym obsługa dev port)
   const centerUrl = await getCenterUrl();
 
@@ -179,7 +250,8 @@ export async function exchangeCodeForUser(
   code: string,
   redirectUri: string,
 ): Promise<SSOTokenResponse | null> {
-  const { apiKey } = SSO_CONFIG;
+  const config = await getSSOConfig();
+  const { apiKey } = config;
   const centerUrl = await getCenterUrl();
 
   try {
@@ -216,7 +288,8 @@ export async function verifySessionWithCenter(
   userId: string,
   tokenVersion: number,
 ): Promise<boolean> {
-  const { apiKey } = SSO_CONFIG;
+  const config = await getSSOConfig();
+  const { apiKey } = config;
   const centerUrl = await getCenterUrl();
 
   try {
@@ -256,4 +329,12 @@ export async function verifySessionWithCenter(
  */
 export function getCallbackUrl(baseUrl: string): string {
   return `${baseUrl}/api/auth/sso-callback`;
+}
+
+/**
+ * Sprawdza czy SSO jest skonfigurowane (w bazie lub .env)
+ */
+export async function isSSOConfigured(): Promise<boolean> {
+  const config = await getSSOConfig();
+  return !!(config.apiKey && config.projectSlug && config.centerUrl);
 }

@@ -14,14 +14,28 @@ vi.mock("next/headers", () => ({
   cookies: vi.fn(),
 }));
 
+// Mockowanie bazy danych
+vi.mock("@/lib/db/drizzle", () => ({
+  db: {
+    query: {
+      ssoConfig: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    },
+  },
+}));
+
 // Import po mockowaniu
 import {
   SSO_CONFIG,
+  SSO_STATIC_CONFIG,
   getSSOSession,
   clearSSOSession,
   exchangeCodeForUser,
   verifySessionWithCenter,
   getCallbackUrl,
+  getSSOConfig,
+  invalidateSSOConfigCache,
 } from "./sso-client";
 import { cookies } from "next/headers";
 
@@ -33,20 +47,45 @@ describe("SSO Client", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFetch.mockReset();
-    // Ustawiamy defaultCenterUrl dla testów
-    (SSO_CONFIG as any).defaultCenterUrl = "https://test-center.example.com";
+    // Invaliduj cache przed każdym testem
+    invalidateSSOConfigCache();
+    // Ustaw zmienne środowiskowe dla testów
+    process.env.SSO_CENTER_URL = "https://test-center.example.com";
+    process.env.SSO_CLIENT_ID = "test-client";
+    process.env.SSO_API_KEY = "test-api-key";
   });
 
   afterEach(() => {
-    // Resetujemy do pustego stringa
-    (SSO_CONFIG as any).defaultCenterUrl = "";
+    // Resetuj zmienne środowiskowe
+    delete process.env.SSO_CENTER_URL;
+    delete process.env.SSO_CLIENT_ID;
+    delete process.env.SSO_API_KEY;
+    invalidateSSOConfigCache();
   });
 
-  describe("SSO_CONFIG", () => {
+  describe("SSO_CONFIG (dla kompatybilności wstecznej)", () => {
     it("powinien mieć zdefiniowane wartości konfiguracji", () => {
       expect(SSO_CONFIG).toBeDefined();
       expect(SSO_CONFIG.sessionMaxAge).toBe(30 * 24 * 60 * 60 * 1000); // 30 dni
       expect(SSO_CONFIG.verifyInterval).toBe(5 * 60 * 1000); // 5 minut
+    });
+  });
+
+  describe("SSO_STATIC_CONFIG", () => {
+    it("powinien mieć zdefiniowane statyczne wartości", () => {
+      expect(SSO_STATIC_CONFIG).toBeDefined();
+      expect(SSO_STATIC_CONFIG.sessionMaxAge).toBe(30 * 24 * 60 * 60 * 1000); // 30 dni
+      expect(SSO_STATIC_CONFIG.verifyInterval).toBe(5 * 60 * 1000); // 5 minut
+    });
+  });
+
+  describe("getSSOConfig", () => {
+    it("powinien zwrócić konfigurację z .env gdy brak w bazie", async () => {
+      const config = await getSSOConfig();
+
+      expect(config.centerUrl).toBe("https://test-center.example.com");
+      expect(config.projectSlug).toBe("test-client");
+      expect(config.apiKey).toBe("test-api-key");
     });
   });
 
