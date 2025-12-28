@@ -46,15 +46,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // URL centrum (może być podany lub z .env, fallback na default)
-    // Domyślny URL publicznej instancji CLA jeśli nie podano innego
-    const DEFAULT_CENTER_URL = "https://centrum-logowania.example.com"; // TODO: Update with real default if known
-
+    // URL centrum - musi być podany przez użytkownika lub z .env
     const centerUrl =
       providedCenterUrl ||
       process.env.SSO_CENTER_URL ||
-      process.env.NEXT_PUBLIC_SSO_CENTER_URL ||
-      DEFAULT_CENTER_URL;
+      process.env.NEXT_PUBLIC_SSO_CENTER_URL;
+
+    if (!centerUrl) {
+      return NextResponse.json(
+        { success: false, message: "Wymagany jest URL Centrum Logowania" },
+        { status: 400 },
+      );
+    }
 
     // 2. Wyślij request do CLA
     const claimResponse = await fetch(`${centerUrl}/api/v1/projects/claim`, {

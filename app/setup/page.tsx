@@ -116,20 +116,18 @@ export default function SetupPage() {
                 htmlFor="centerUrl"
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                URL Centrum Logowania{" "}
-                <span className="text-muted-foreground font-normal">
-                  (opcjonalne)
-                </span>
+                URL Centrum Logowania
               </label>
               <Input
                 id="centerUrl"
-                placeholder="https://centrum-logowania.example.com"
+                placeholder="https://centrum-logowania.twoja-domena.com"
                 value={centerUrl}
                 onChange={(e) => setCenterUrl(e.target.value)}
                 disabled={loading}
+                required
               />
               <p className="text-xs text-muted-foreground">
-                Zostaw puste, aby użyć domyślnego adresu
+                Pełny adres URL Twojej instancji Centrum Logowania
               </p>
             </div>
 
@@ -143,7 +141,7 @@ export default function SetupPage() {
             <Button
               type="submit"
               className="w-full"
-              disabled={loading || !setupCode.trim()}
+              disabled={loading || !setupCode.trim() || !centerUrl.trim()}
             >
               {loading ? (
                 <>
