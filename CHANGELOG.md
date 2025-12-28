@@ -1,3 +1,27 @@
+# [2.0.0](https://github.com/AleksanderOne/flashcards-app/compare/v1.4.0...v2.0.0) (2025-12-28)
+
+
+### Bug Fixes
+
+* **admin:** usunięcie niepotrzebnej weryfikacji SSO dla operacji admina ([55459ed](https://github.com/AleksanderOne/flashcards-app/commit/55459ed4b3d57de68534c6f3ffe2af6ff372b4a0))
+* **e2e:** obsługa przekierowania na /setup gdy SSO nie skonfigurowane ([d8d4f4a](https://github.com/AleksanderOne/flashcards-app/commit/d8d4f4a219bb3aa917ac1f494985117cbe1a4edc))
+* **security:** dodanie data: do font-src w CSP ([296e283](https://github.com/AleksanderOne/flashcards-app/commit/296e28388d89e90e919cfb1252f133265aaecd1d))
+
+
+### Features
+
+* **admin:** strona konfiguracji SSO dla administratora ([fc34a27](https://github.com/AleksanderOne/flashcards-app/commit/fc34a270ec7caa14b74ac0562c583581abf33cb7))
+* **db:** dodanie tabeli ssoConfig dla dynamicznej konfiguracji SSO ([cd2ede1](https://github.com/AleksanderOne/flashcards-app/commit/cd2ede1bbe2c048b6598762b5b481277ab6713f8))
+* **settings:** dodanie opcji usunięcia własnego konta przez użytkownika ([1bca948](https://github.com/AleksanderOne/flashcards-app/commit/1bca948cfc53407eeb1d926f46ec550b0f3222e6))
+* **setup:** publiczna strona pierwszej konfiguracji ([db7934b](https://github.com/AleksanderOne/flashcards-app/commit/db7934b06066567c295802e8420f3814e9bef649))
+* **sso:** dynamiczna konfiguracja SSO z bazy danych ([47b2280](https://github.com/AleksanderOne/flashcards-app/commit/47b2280fda90fec0f4771c7b419e63f1316b3892))
+* **ui:** nawigacja do strony konfiguracji SSO ([229097f](https://github.com/AleksanderOne/flashcards-app/commit/229097f60a01ec5f1c896fc25d5a0764c3027e75))
+
+
+### BREAKING CHANGES
+
+* **db:** Konfiguracja SSO może być teraz zarządzana przez UI
+
 # [1.4.0](https://github.com/AleksanderOne/flashcards-app/compare/v1.3.0...v1.4.0) (2025-12-27)
 
 
