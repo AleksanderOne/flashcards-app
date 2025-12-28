@@ -1,3 +1,11 @@
+/**
+ * ⚠️ UWAGA: NIE ZMIENIAJ NAZWY TEGO PLIKU NA middleware.ts!
+ *
+ * Next.js 16+ wymaga pliku proxy.ts (nie middleware.ts).
+ * Konwencja "middleware" jest deprecated od Next.js 16.
+ * Więcej: https://nextjs.org/docs/messages/middleware-to-proxy
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { checkAuthRateLimit, checkApiRateLimit } from "@/lib/rate-limit";
 
