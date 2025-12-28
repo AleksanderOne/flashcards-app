@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AlertCircle, Loader2, Shield, LogIn } from "lucide-react";
+import { AlertCircle, Loader2, Shield, LogIn, Settings2 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 // Pobieranie wartości ciasteczka po stronie klienta
@@ -27,6 +28,8 @@ function getCookie(name: string): string | undefined {
 function LoginContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [ssoHealthy, setSsoHealthy] = useState<boolean | null>(null);
+  const [showReconfigure, setShowReconfigure] = useState(false);
   const searchParams = useSearchParams();
   const isDev = process.env.NODE_ENV === "development";
 
@@ -39,6 +42,25 @@ function LoginContent() {
     if (port) setDevPort(port);
   }, []);
 
+  // Sprawdzenie health SSO przy ładowaniu strony
+  useEffect(() => {
+    async function checkSSOHealth() {
+      try {
+        const response = await fetch("/api/sso-health");
+        const data = await response.json();
+        setSsoHealthy(data.healthy);
+        // Pokaż przycisk rekonfiguracji jeśli SSO nie działa
+        if (!data.healthy) {
+          setShowReconfigure(true);
+        }
+      } catch {
+        setSsoHealthy(false);
+        setShowReconfigure(true);
+      }
+    }
+    checkSSOHealth();
+  }, []);
+
   // Obsługa błędów z callbacku SSO
   useEffect(() => {
     const errorParam = searchParams.get("error");
@@ -48,8 +70,11 @@ function LoginContent() {
         invalid_code: "Kod autoryzacji jest nieprawidłowy lub wygasł.",
         blocked: "Twoje konto zostało zablokowane.",
         server_error: "Błąd serwera. Spróbuj ponownie później.",
+        project_not_found: "Projekt nie istnieje w centrum logowania.",
       };
       setError(errorMessages[errorParam] || "Wystąpił nieznany błąd.");
+      // Pokaż przycisk rekonfiguracji przy błędzie
+      setShowReconfigure(true);
     }
   }, [searchParams]);
 
@@ -151,6 +176,32 @@ function LoginContent() {
               </p>
             </div>
           </div>
+
+          {/* Przycisk rekonfiguracji SSO - widoczny gdy problemy z połączeniem */}
+          {showReconfigure && (
+            <div className="flex flex-col items-center gap-3 p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                <AlertCircle className="h-4 w-4" />
+                <span className="text-sm font-medium">
+                  Problemy z logowaniem?
+                </span>
+              </div>
+              <p className="text-xs text-amber-600 dark:text-amber-500 text-center">
+                {ssoHealthy === false
+                  ? "Nie można połączyć się z centrum logowania. Możesz skonfigurować połączenie ponownie."
+                  : "Jeśli logowanie nie działa, możesz zrekonfigurować połączenie SSO."}
+              </p>
+              <Link href="/setup" className="w-full">
+                <Button
+                  variant="outline"
+                  className="w-full border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30"
+                >
+                  <Settings2 className="mr-2 h-4 w-4" />
+                  Rekonfiguruj SSO
+                </Button>
+              </Link>
+            </div>
+          )}
         </CardContent>
       </Card>
 
