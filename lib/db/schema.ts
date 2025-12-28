@@ -223,3 +223,17 @@ export const contactMessages = flashcardsSchema.table("contact_messages", {
   emailSent: boolean("email_sent").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// Konfiguracja SSO (singleton - jeden rekord)
+export const ssoConfig = flashcardsSchema.table("sso_config", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  apiKey: text("api_key").notNull(),
+  projectSlug: varchar("project_slug", { length: 255 }).notNull(),
+  centerUrl: text("center_url").notNull(),
+  projectName: text("project_name"), // opcjonalne, dla UI
+  configuredAt: timestamp("configured_at").defaultNow().notNull(),
+  configuredBy: varchar("configured_by", { length: 255 }).references(
+    () => users.id,
+    { onDelete: "set null" },
+  ),
+});
