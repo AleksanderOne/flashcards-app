@@ -2,6 +2,9 @@ import { Metadata } from "next";
 import { SSOSetupForm } from "./_components/sso-setup-form";
 import { SSOStatusCard } from "./_components/sso-status-card";
 
+// Wymusza dynamiczne renderowanie - strona wymaga dostępu do bazy danych
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Konfiguracja SSO | Admin",
   description: "Konfiguracja połączenia z Centrum Logowania",
